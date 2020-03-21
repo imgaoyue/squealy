@@ -1,7 +1,5 @@
 import decimal
 
-from past.builtins import long
-
 from squealy.exceptions import InvalidChartDataException
 from squealy.transformers import Split
 
@@ -78,7 +76,7 @@ class GoogleChartsFormatter(Formatter):
 
         for row in table.data:
             for index, data in enumerate(row):
-                if (type(data) not in [int, float, long]) and (isinstance(data, decimal.Decimal) == False):
+                if (type(data) not in [int, float]) and (isinstance(data, decimal.Decimal) == False):
                     column_types[index] = 'Dimension'
             if 'Metric' not in column_types:
                 break

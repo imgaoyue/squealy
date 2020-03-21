@@ -17,7 +17,7 @@ class JWTAuthentication(object):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
         token = self._extract_token(request)
-        if not request.user.is_authenticated() and token:
+        if not request.user.is_authenticated and token:
             user = self._authenticate(token)
             if user:
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')

@@ -17,8 +17,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from pyathenajdbc import connect
-
 from squealy.constants import SQL_WRITE_BLACKLIST, SWAGGER_JSON_TEMPLATE, SWAGGER_DICT
 from squealy.jinjasql_loader import configure_jinjasql
 
@@ -170,10 +168,11 @@ class DataProcessor(object):
                                                      "user": user
                                                     })
         conn = connections[str(db)]
-        if conn.settings_dict['NAME'] == 'Athena':
-            conn = connect(driver_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'athena-jdbc/AthenaJDBC41-1.0.0.jar'))
         with conn.cursor() as cursor:
-            cursor.execute(query, bind_params)
+            if bind_params:
+                cursor.execute(query, bind_params)
+            else:
+                cursor.execute(query)
             rows = []
             cols = [desc[0] for desc in cursor.description]
             for db_row in cursor:
@@ -224,13 +223,12 @@ class ChartView(APIView):
         """
         This is the endpoint for running and testing queries from the authoring interface
         """
-        try:
-            params = request.data.get('params', {})
-            user = request.data.get('user', None)
-            data = DataProcessor().fetch_chart_data(chart_url, params, user, request.data.get('chartType'))
-            return Response(data)
-        except Exception as e:
-            return Response({'error': str(e)}, status.HTTP_400_BAD_REQUEST)
+        
+        params = request.data.get('params', {})
+        user = request.data.get('user', None)
+        data = DataProcessor().fetch_chart_data(chart_url, params, user, request.data.get('chartType'))
+        return Response(data)
+    
 
 
 class ChartUpdatePermission(BasePermission):

@@ -2,10 +2,7 @@ from __future__ import absolute_import
 
 from django.contrib import admin
 from django.template.defaultfilters import escape
-from django.core.urlresolvers import reverse
-
-from djcelery.models import (TaskState, WorkerState,
-                 PeriodicTask, IntervalSchedule, CrontabSchedule)
+from django.urls import reverse
 
 from social_django.models import UserSocialAuth, Nonce, Association
 from social_django.admin import UserSocialAuthOption, NonceOption, AssociationOption
@@ -145,13 +142,6 @@ admin.site.register(ScheduledReport, ScheduledReportAdmin)
 admin.site.register(ScheduledReportChart, ScheduledReportChartAdmin)
 admin.site.register(Filter, FilterAdmin)
 admin.site.register(FilterParameter, FilterParameterAdmin)
-
-admin.site.unregister(TaskState)
-admin.site.unregister(WorkerState)
-admin.site.unregister(IntervalSchedule)
-admin.site.unregister(CrontabSchedule)
-admin.site.unregister(PeriodicTask)
-
 
 admin.site.unregister(UserSocialAuth)
 admin.site.unregister(Nonce)

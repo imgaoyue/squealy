@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
-import djcelery
 import sys
 import dj_database_url
 
@@ -41,8 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'djcelery',
-    'kombu.transport.django',
     'squealy',
     'corsheaders',
     'rest_framework',
@@ -172,7 +169,8 @@ STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, 'static'),
 ]
 
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_ROOT = "public"
 
 # CORS_ORIGIN_WHITELIST = (
 #     'localhost:3000',
@@ -199,15 +197,6 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = os.environ.get('EMAIL_PORT')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
-# Celery settings
-BROKER_URL = 'django://'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
-CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
-djcelery.setup_loader()
 
 # Test Settings
 if 'test' in sys.argv:

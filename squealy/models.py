@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from past.builtins import basestring  
 
 import json
 
@@ -18,10 +17,10 @@ from .exceptions import DatabaseConfigurationException
 
 class CustomJSONField(models.TextField):
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         if value is None:
             return {}
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             return json.loads(value)
         else:
             return value
@@ -32,7 +31,7 @@ class CustomJSONField(models.TextField):
     def to_python(self, value):
         if value is None:
             return {}
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             return json.loads(value)
         else:
             return value
@@ -53,7 +52,7 @@ class Chart(models.Model):
     """
     This represents an API for generating a chart or report.
     """
-    account = models.ForeignKey(Account, null=True, blank=True)
+    account = models.ForeignKey(Account, null=True, blank=True, on_delete=models.CASCADE)
     url = models.CharField(max_length=255, unique=True)
     query = models.TextField()
     # To be updated to be in sync with the authoring interface UI.
@@ -89,7 +88,7 @@ class Parameter(models.Model):
     This represents a parameter injected in the query
     """
 
-    chart = models.ForeignKey(Chart, related_name='parameters')
+    chart = models.ForeignKey(Chart, related_name='parameters', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     data_type = models.CharField(max_length=100, default='string')
     mandatory = models.BooleanField(default=True)
@@ -109,7 +108,7 @@ class FilterParameter(models.Model):
     """
     This represents a parameter injected in the filter query
     """
-    filter = models.ForeignKey(Filter, related_name='parameters')
+    filter = models.ForeignKey(Filter, related_name='parameters', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     default_value = models.CharField(max_length=200, null=True, blank=True)
     test_value = models.CharField(max_length=200, null=True, blank=True)
@@ -124,7 +123,7 @@ class Transformation(models.Model):
     the data from the query.
     """
 
-    chart = models.ForeignKey(Chart, related_name='transformations')
+    chart = models.ForeignKey(Chart, related_name='transformations', on_delete=models.CASCADE)
     name = models.IntegerField(default=1, choices=TRANSFORMATION_TYPES)
     kwargs = CustomJSONField(null=True, blank=True, default={})
 
@@ -137,7 +136,7 @@ class Validation(models.Model):
     This represents API Validations
     """
 
-    chart = models.ForeignKey(Chart, related_name='validations')
+    chart = models.ForeignKey(Chart, related_name='validations', on_delete=models.CASCADE)
     query = models.TextField()
     name = models.CharField(max_length=200)
 
@@ -176,9 +175,9 @@ class ScheduledReportChart(models.Model):
         Many to many mapping between charts and cheduled reports
     """
 
-    chart = models.ForeignKey(Chart, related_name='scheduledreportchart')
+    chart = models.ForeignKey(Chart, related_name='scheduledreportchart', on_delete=models.CASCADE)
     report = models.ForeignKey(ScheduledReport,
-                               related_name='relatedscheduledreport')
+                               related_name='relatedscheduledreport', on_delete=models.CASCADE)
 
 
 class ReportRecipient(models.Model):
@@ -187,7 +186,7 @@ class ReportRecipient(models.Model):
     """
 
     email = models.EmailField()
-    report = models.ForeignKey(ScheduledReport, related_name='reportrecep')
+    report = models.ForeignKey(ScheduledReport, related_name='reportrecep', on_delete=models.CASCADE)
 
 
 class ReportParameter(models.Model):
@@ -197,4 +196,4 @@ class ReportParameter(models.Model):
 
     parameter_name = models.CharField(max_length=300)
     parameter_value = models.CharField(max_length=300)
-    report = models.ForeignKey(ScheduledReport, related_name='reportparam')
+    report = models.ForeignKey(ScheduledReport, related_name='reportparam', on_delete=models.CASCADE)
