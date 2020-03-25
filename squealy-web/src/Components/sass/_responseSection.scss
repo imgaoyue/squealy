@@ -1,0 +1,121 @@
+.chart-type-select {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 0 10px 0;
+
+  >img {
+    height: 26px;
+    margin-left: 15px;
+  }
+}
+
+.chart-config-modal {
+  width: 70%;
+}
+
+.error-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 85px;
+  background: $warning-bg-color;
+  color: $red-color;
+  font-size: 17px;
+  font-family: Roboto Bold;
+  padding: 10px;
+  margin-top: 2%;
+}
+
+
+.response-formatwrapper{
+  background-color: #f6f6f6;
+  .response-format {
+    float: right;
+    padding: 5px 0px 5px 0px;
+    label {
+      margin: 0px 10px 0px 10px;
+
+      input {
+        margin-right: 5px;
+      }
+    }
+  }
+}
+
+.visualchart {
+  > .error-box {
+    margin-top: 50px;
+  }
+}
+
+
+.json-response-wrapper {
+  max-height: 350px;
+  overflow: auto;
+}
+
+.radio-inline {
+  font-size: 1.2em;
+  margin-right: 4px;
+}
+
+.respone-table-header {
+  width: inherit !important;
+  display: inherit; 
+  i.fa {
+    float: right;
+  }
+}
+
+.col-def-form > input[type="text"] {
+  width: 100%;
+}
+
+.edit-col-modal > div.row {
+  margin-bottom: 10px;
+}
+
+.response-section {
+
+  #response-table {
+    height: 300px;
+    overflow-x: auto;
+    box-shadow: 0 4px 8px 0 $light_gray_color , 0 6px 33px 0 $light_gray_color ;
+
+    .table thead th {
+      border: 5px solid #fff;
+      margin-bottom: 10%;
+    }
+
+    .table tbody tr td {
+      color: #000;
+      background-color: $light_gray_color;
+      border: 5px solid #fff;
+      margin-top: 10%;
+      font-size: 13px;
+    }
+
+    #gc_response_header {
+      display: flex;
+      align-content: center;
+
+      .response-section-btn {
+        background: $white_color;
+        border-radius: 3px;
+        margin: 0 7px 4px 0;
+        padding: 6px 18px;
+        outline: none;
+      }
+
+      #chart_select {
+        display: inline-block;
+        width: 200px;
+      }
+    }
+  }
+}
+
+.error {
+  padding-left: 15px;
+}

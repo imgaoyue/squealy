@@ -1,0 +1,122 @@
+.modal-container {
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 15px;
+  padding-right: 15px;
+
+  .validation-query {
+    padding: 0 4px 0 0 ;
+  }
+
+  .chart-configuration-title {
+      color: $squealy-theme-blue;
+      display: flex;
+      justify-content: center;
+    }
+
+  .add-modal-content {
+    > button.btn-success {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: bold;
+      > i.fa-angle-double-left {
+        padding-right: 7px;
+        font-weight: bold;
+      }
+    }
+    select {
+      min-width: 200px;
+    }
+  }
+}
+
+.copy-url {
+  position: relative;
+  > input {
+    width: 100%;
+  }
+
+  > label {
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+  > button {
+    position: absolute;
+    right: 15px;
+    padding: 7px;
+    background: $squealy-success;
+    color: $white-color;
+
+    &:hover, &:focus, &:active {
+      color: $white-color;
+    }
+  }
+}
+
+.share-modal {
+  min-height: 75px;
+  .note-text {
+    padding-top: 10px;
+    text-align: center;
+  }
+}
+
+.modal-header {
+  background: $squealy-theme-blue;
+  color: $white-color;
+  .close {
+    opacity: 1;
+    color: $white-color;
+  }
+  .info-icon {
+    font-size: 15px;
+    position: absolute;
+    top: 15px;
+    margin-left: 4px;
+    margin-top: 6px;
+  }
+}
+
+.app-modal-content {
+  > .row {
+    padding-bottom: 10px;
+  }
+
+  select {
+    min-width: 200px;
+  }
+}
+
+.error-modal {
+  .modal-header {
+    background: $error-bg-color;
+  }
+
+  .modal-title > span > .fa-exclamation-triangle {
+    padding-right: 10px;
+  }
+
+  .modal-body{
+    .error-type {
+      font-weight: bold;
+      text-transform: capitalize;
+      color: $note-text-color;
+      font-size: 16px; 
+    }
+
+    > div > p {
+      display: inline;
+      line-height: 3;
+    }
+  }
+}
+
+.modal-save {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.db-config-error {
+  color:$red_color;
+}
+

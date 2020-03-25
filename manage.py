@@ -4,10 +4,6 @@ from os.path import dirname, abspath
 import sys
 
 if __name__ == "__main__":
-    # Include squealy library into python path
-    SQUEALY_ROOT = dirname(dirname(abspath(__file__)))
-    sys.path.insert(0, SQUEALY_ROOT)
-
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "squealyproj.settings")
     try:
         from django.core.management import execute_from_command_line

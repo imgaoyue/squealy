@@ -1,0 +1,94 @@
+.navbar {
+  margin: 0 -15px;
+  min-height: 58px;
+  padding: 3px;
+  background: $white-color;
+  box-shadow: 0px 3px 7px 0px $border-color;
+  border-radius: 0;
+  z-index: 10;
+  border-color: $white-color;
+}
+
+.nav-tabs > li > a {
+  padding: 6px 15px;
+  margin-bottom: 10px;
+}
+
+.navbar-brand {
+  padding: 6px 7px;
+  > a {
+    font-size: 29px;
+    margin-bottom: 3px;
+    color: #5e5e5e;
+    background-color: transparent;
+    text-decoration: none !important;
+  }
+  > p {
+    font-size: 13px;
+    color: #3f51b5;
+    font-weight: 600;
+    font-style: italic;
+  }
+}
+
+.navbar-default{
+  .username-initial {
+    border: 2px solid white;
+    border-radius: 50%;
+    background: $squealy-theme-blue-active;
+    text-transform: uppercase;
+    margin-top: 3px;
+    > a {
+      padding: 10px 15px;
+      font-weight: bold;
+      color: $white-color !important;
+    }
+    &.dbl-letter > a {
+      padding: 10px 12px;
+    }
+  }
+
+  navbar-nav > li > a {
+    font-size: 17px;
+  }
+}
+
+.save-status {
+  margin-top: 30px;
+  color: $text-color;
+  left: calc(50% - 60px);
+  position: absolute;
+}
+
+.nav-tabs {
+  border-bottom: none;
+  li > a {
+    color: $text-color;
+    opacity: 0.6;
+    font-size: 15px;
+    font-weight: bold;
+  }
+
+  .active {
+    background-color: $white-color !important;
+  }
+}
+
+
+.nav-tabs > li.active > a,
+  .nav-tabs > li.active > a:hover,
+  .nav-tabs > li.active > a:focus {
+  background-color: $white-color;
+  border: none;
+  border-bottom: 3px solid $squealy-theme-blue;
+  opacity: 1;
+}
+
+.navbar-default .navbar-nav > .open > a,
+  .navbar-default .navbar-nav > .open > a:hover,
+  .navbar-default .navbar-nav > .open > a:focus {
+    background-color: $white-color;
+    opacity: 1;
+}
+
+

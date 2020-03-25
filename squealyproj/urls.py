@@ -20,5 +20,5 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
     url('^', include('django.contrib.auth.urls')),
-    url(r'^', include('squealy.urls')),
+    url(r'^', include('squealyproj.squealy.urls')),
 ]

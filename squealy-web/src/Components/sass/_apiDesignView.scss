@@ -1,0 +1,202 @@
+.tabs-container {
+  border-bottom: 1px solid $border-color;
+  height: 47px;
+  padding-bottom: 2px;
+
+  .tab-component {
+    min-width: 120px;
+    margin-left: 10px;
+    font-size: 14px;
+    border-radius: 28px;
+    height: 35px;
+    img {
+      height: 20px;
+      padding-right: 5px;
+      vertical-align: bottom;
+    }
+
+    .fa {
+      font-size: 16px;
+      padding-right: 5px;
+    }
+  }
+
+  .validation-btn {
+    margin-top: 2px
+  }
+  .selected-db-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 10px;
+    min-width: 180px;
+    text-overflow: ellipsis;
+
+    .Select {
+      display: inline-block;
+      flex-grow: 6;
+      border-right: 20px;
+      
+      .Select-control {
+        border-radius: 28px;
+        background: $squealy-theme-blue;
+
+        .Select-value-label {
+          color: $white-color !important;
+        }
+
+        .Select-clear {
+          color: $white-color;
+        }
+
+        .Select-arrow {
+          border-color: $white-color transparent transparent;
+        }
+
+        .Select-placeholder {
+          color: $white-color;
+        }
+      }
+
+      .Select-menu-outer {
+        margin-top: 3px;
+      }
+    }
+
+    .add-new {
+      cursor: pointer;
+      color: white;
+      font-size: 20px;
+      padding-bottom: 1px;
+      padding-right: 9px;
+      background-color: #0C8ADC;
+      border-bottom-right-radius: 28px;
+      border-top-right-radius: 28px;
+      height: 34.8px;
+      border: 1px solid #0C8ADC;
+      margin-left: -0.5px;
+      margin-top: 0.8px;
+      border: none !important;
+    }
+  }
+  .view-btn {
+    float: right;
+  }
+  .transformation-container {
+    display: inline-block;
+    background: red;
+    width: 50px;
+  }
+  .transformations-count-badge {
+    top: -34px !important;
+    right: -17px !important;
+  }
+}
+.response-table {
+  height: 200px;
+}
+
+tr.editable-table-row {
+  td input {
+    border: 1px solid $white-color;
+  }
+
+  td input:hover, td input:focus {
+    border: 1px solid $border-color;
+  }
+}
+
+.api-design-container {
+  height: 100%;
+  padding: 15px 0 0 0;
+  float: right;
+}
+
+.param-heading {
+  font-family: Roboto Bold;
+  color: $text-color;
+
+  .info-icon {
+    position: absolute;
+    top: 11px;
+    left: 73px;
+    font-size: 18px;
+    cursor: pointer;
+    padding-top: 6px;
+  }
+}
+
+.run-btn-group {
+  border-bottom-left-radius: 28px;
+  border-top-left-radius: 28px;
+  padding-right: 27px;
+}
+
+#run-button {
+  border-bottom-right-radius: 28px;
+  border-top-right-radius: 28px;
+}
+
+.run-btn-filter {
+  border-radius: 28px;
+  min-width: 79px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.note-text {
+  color: $note-text-color;
+  &:hover, &:active, &:focus {
+    color: $note-text-color-active;
+  }
+}
+
+.no-charts {
+  text-align: center;
+  .instructions {
+    margin-top: 20%;
+  }
+  h2, h6 {
+    color: $text-color;
+  }
+}
+
+.view-filter {
+  display: flex;
+  padding: 15px 0;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  .filter-component {
+    margin-right: 15px;
+    min-width: 200px;
+
+    > label {
+      line-height: 1;
+      vertical-align: top;
+      text-transform: capitalize;
+    }
+  }
+  .filter-component:last-child {
+    margin-right: 0;
+  }
+}
+
+.view-mode-filter {
+  display: block;
+  width: 100%;
+}
+
+.view-mode-visualchart {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  align-content: space-between;
+  border-top: 1px solid $border-color;
+  padding: 15px;
+  margin-left: -15px;
+  margin-right: -15px;
+
+  .chart-type-select {
+    padding-bottom: 15px; 
+  }
+}
