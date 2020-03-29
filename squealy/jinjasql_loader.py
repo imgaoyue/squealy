@@ -4,9 +4,10 @@ from jinja2 import Environment
 from jinjasql import JinjaSql
 from dateutil.relativedelta import relativedelta
 from dateutil import rrule
+from werkzeug.exceptions import HTTPException
 
-from .exceptions import InvalidDateRangeException
-
+class InvalidDateRangeException(HTTPException):
+    code = 400
 
 def configure_jinjasql():
     """

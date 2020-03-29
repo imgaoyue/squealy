@@ -1,0 +1,21 @@
+kind: datasource
+id: salesdb
+url: "sqlite:///salesdb:memory"
+
+---
+kind: chart
+id: monthly-sales-by-region
+datasource: salesdb
+query: |
+    SELECT 'jan' as month, 'north' as region, 1500 as sales UNION ALL
+    SELECT 'feb' as month, 'north' as region, 1600 as sales UNION ALL
+    SELECT 'mar' as month, 'north' as region, 1700 as sales UNION ALL
+    SELECT 'jan' as month, 'south' as region, 1800 as sales UNION ALL
+    SELECT 'feb' as month, 'south' as region, 1900 as sales UNION ALL
+    SELECT 'mar' as month, 'south' as region, 1300 as sales UNION ALL
+    SELECT 'jan' as month, 'west' as region, 1200 as sales UNION ALL
+    SELECT 'feb' as month, 'west' as region, 1000 as sales UNION ALL
+    SELECT 'mar' as month, 'west' as region, 2000 as sales UNION ALL
+    SELECT 'jan' as month, 'east' as region, 2100 as sales UNION ALL
+    SELECT 'feb' as month, 'east' as region, 1600 as sales UNION ALL
+    SELECT 'mar' as month, 'east' as region, 1500 as sales

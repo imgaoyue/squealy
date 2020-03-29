@@ -1,8 +1,90 @@
 import arrow
 import datetime
+from werkzeug.exceptions import HTTPException
+from pathlib import Path
+import yaml
+from collections import defaultdict
+from sqlalchemy import create_engine
+from .jinjasql_loader import configure_jinjasql
 
-from .exceptions import DateParseException, DateTimeParseException, NumberParseException
+def raw_objects(base_dir):
+    for ymlfile in Path(base_dir).rglob("*.yml"):
+        with open(ymlfile) as f:
+            objects = yaml.safe_load_all(f)
+            for rawobj in objects:
+                yield (rawobj, ymlfile)
 
+def load_objects(base_dir):
+    objects = defaultdict(dict)
+    for rawobj, ymlfile in raw_objects(base_dir):
+        kind = rawobj['kind']
+        if kind == 'chart':
+            chart = load_chart(rawobj)
+            objects['charts'][chart.slug] = chart
+        elif kind == 'datasource':
+            url = rawobj['url']
+            engine = create_engine(url)
+            objects['datasources'][rawobj['id']] = engine
+        else:
+            raise Exception(f"Unknown object of kind = {kind} in {ymlfile}")
+    return objects
+
+def load_chart(raw_chart):
+    id_ = raw_chart['id']
+    slug = raw_chart['slug'] if 'slug' in raw_chart else id_
+    name = raw_chart['name'] if 'name' in raw_chart else id_
+    query = raw_chart['query']
+    datasource = raw_chart['datasource']
+    return Chart(id_, slug, name, query, datasource)
+
+class Table:
+    'A basic table that is the result of a sql query'
+    def __init__(self, columns=None, data=None):
+        self.columns = columns if columns else []
+        self.data = data if data else []
+
+
+class GoogleChartsFormatter():
+    pass
+
+class Chart():
+    def __init__(self, id_, slug, name, query, datasource, 
+                    transformations=None, formatter=GoogleChartsFormatter, options=None):
+        self.id_ = id_
+        self.slug = slug
+        self.name = name
+        self.query = query
+        self.datasource = datasource
+        self.transformations = transformations or []
+        self.formatter = formatter
+        self.options = options or {}
+
+    def process(self, user, params):
+        engine = datasources[self.datasource]
+        context = {
+            "config": config,
+            "user": user,
+            "params": params
+        }
+
+        finalquery, bindparams = jinja.prepare_query(self.query, context)
+        print(finalquery, bindparams)
+        return {'query': finalquery}
+
+class ChartNotFoundException(HTTPException):
+    code = 404
+    
+class RequiredParameterMissingException(HTTPException):
+    code = 400
+
+class DateParseException(HTTPException):
+    code = 400
+
+class DateTimeParseException(HTTPException):
+    code = 400
+
+class NumberParseException(HTTPException):
+    code = 400
 
 class Parameter():
     def __init__(self):
@@ -10,7 +92,6 @@ class Parameter():
 
     def to_internal(self, value):
         return value
-
 
 class String(Parameter):
     def __init__(self, name, description=None, default_value=None, valid_values=None, **kwargs):
@@ -124,6 +205,10 @@ class Number(Parameter):
         except ValueError:
             raise NumberParseException("Cannot parse to int or float"+ value)
 
+objects = load_objects("/home/sri/apps/squealy/squealy/fixtures/basic_loading")
+charts = objects['charts']
+datasources = objects['datasources']
+config = objects['config']
+jinja = configure_jinjasql()
 
-class Dropdown(String):
-    pass
+print(objects)
