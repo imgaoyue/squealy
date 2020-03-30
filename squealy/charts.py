@@ -6,6 +6,8 @@ import yaml
 from collections import defaultdict
 from sqlalchemy import create_engine
 from .jinjasql_loader import configure_jinjasql
+from .formatters import GoogleChartsFormatter
+from .table import Table
 
 def raw_objects(base_dir):
     for ymlfile in Path(base_dir).rglob("*.yml"):
@@ -37,26 +39,16 @@ def load_chart(raw_chart):
     datasource = raw_chart['datasource']
     return Chart(id_, slug, name, query, datasource)
 
-class Table:
-    'A basic table that is the result of a sql query'
-    def __init__(self, columns=None, data=None):
-        self.columns = columns if columns else []
-        self.data = data if data else []
-
-
-class GoogleChartsFormatter():
-    pass
-
-class Chart():
+class Chart:
     def __init__(self, id_, slug, name, query, datasource, 
-                    transformations=None, formatter=GoogleChartsFormatter, options=None):
+                    transformations=None, formatter=None, options=None):
         self.id_ = id_
         self.slug = slug
         self.name = name
         self.query = query
         self.datasource = datasource
         self.transformations = transformations or []
-        self.formatter = formatter
+        self.formatter = formatter if formatter else GoogleChartsFormatter()
         self.options = options or {}
 
     def process(self, user, params):
@@ -68,8 +60,16 @@ class Chart():
         }
 
         finalquery, bindparams = jinja.prepare_query(self.query, context)
-        print(finalquery, bindparams)
-        return {'query': finalquery}
+        with engine.connect() as conn:
+            result = conn.execute(finalquery, list(bindparams))
+            rows = []
+            for db_row in result:
+                row_list = []
+                for col in db_row:
+                    row_list.append(col)
+                rows.append(row_list)
+            table = Table(columns=result.keys(), data=rows)
+            return self.formatter.format(table, 'ColumnChart')
 
 class ChartNotFoundException(HTTPException):
     code = 404

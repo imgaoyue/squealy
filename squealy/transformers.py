@@ -1,9 +1,5 @@
 from collections import OrderedDict
-
-from django.utils.datastructures import OrderedSet
-
 from .table import Table
-
 
 class TableTransformer(object):
     def transform(self, table, *args):
@@ -42,11 +38,14 @@ class Split(TableTransformer):
         pivot_column_index = table.columns.index(pivot_column)
         # Find the index of the metric column
         metric_column_index = table.columns.index(metric_column)
-        new_split_columns = OrderedSet([])
-        # Get values of new columns
+        
+        # Get unique values from the pivot column
+        # These unique values become new columns
+        new_split_columns = OrderedDict()
         for data in table.data:
-            new_split_columns.add(data[pivot_column_index])
-        new_split_columns = list(new_split_columns)
+            col = data[pivot_column_index]
+            new_split_columns[col] = None
+        new_split_columns = list(new_split_columns.keys())
 
         # Set the metric for the new columns
         grouping_column_index = x_axis_column

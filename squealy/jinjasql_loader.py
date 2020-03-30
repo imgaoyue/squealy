@@ -26,7 +26,7 @@ def configure_jinjasql():
     env.globals['get_date_diff'] = get_date_diff
     env.globals['calculate_start_date'] = calculate_start_date
     env.globals['get_today'] = get_today
-    return JinjaSql(env)
+    return JinjaSql(env, param_style='qmark')
 
 
 def get_date_diff(start_date, end_date, parameter):

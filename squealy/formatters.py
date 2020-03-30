@@ -1,8 +1,9 @@
 import decimal
-
-from .exceptions import InvalidChartDataException
+from werkzeug.exceptions import HTTPException
 from .transformers import Split
 
+class InvalidChartDataException(HTTPException):
+    code = 404
 
 class Formatter:
     def format(self, table):
