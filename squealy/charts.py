@@ -210,5 +210,3 @@ charts = objects['charts']
 datasources = objects['datasources']
 config = objects['config']
 jinja = configure_jinjasql()
-
-print(objects)
