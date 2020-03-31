@@ -27,7 +27,6 @@ def login_required(f):
     return decorated_function
 
 
-
 @app.route('/charts/<chart_id>')
 @login_required
 def render_chart(chart_id):
@@ -35,5 +34,4 @@ def render_chart(chart_id):
         raise ChartNotFoundException(chart_id)
     chart = charts[chart_id]
     params = request.args
-    print(request.user)
     return chart.process(request.user, params)
