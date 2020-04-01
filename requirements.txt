@@ -24,3 +24,6 @@ psycopg2==2.8.4
 
 # Mysql driver
 mysqlclient==1.4.6
+
+# MS SQL Server Driver
+pymssql==2.1.4

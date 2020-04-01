@@ -12,11 +12,16 @@ url: "mysql://adventureworks:adventureworks%40123@127.0.0.1:3306/adventureworks"
 kind: datasource
 id: sqlitedb
 url: "sqlite:///salesdb:memory"
+
+---
+kind: datasource
+id: mssqldb
+url: "mssql+pymssql://sa:secret%211234@localhost:1433"
     
 ---
 kind: chart
 id: monthly-sales-by-region
-datasource: mysqldb
+datasource: mssqldb
 query: |
     SELECT month, region, sales from (
         SELECT 'jan' as month, 'north' as region, 1528 as sales UNION ALL
