@@ -1,17 +1,22 @@
 kind: datasource
-id: salesdb
-url: "sqlite:///salesdb:memory"
+id: postgresdb
+url: "postgresql://postgres:secret@localhost"
 
+---
+kind: datasource
+id: sqlitedb
+url: "sqlite:///salesdb:memory"
+    
 ---
 kind: chart
 id: monthly-sales-by-region
-datasource: salesdb
+datasource: postgresdb 
 query: |
     SELECT month, region, sales from (
-        SELECT 'jan' as month, 'north' as region, 1500 as sales UNION ALL
-        SELECT 'feb' as month, 'north' as region, 1600 as sales UNION ALL
-        SELECT 'mar' as month, 'north' as region, 1700 as sales UNION ALL
-        SELECT 'jan' as month, 'south' as region, 1800 as sales UNION ALL
+        SELECT 'jan' as month, 'north' as region, 1528 as sales UNION ALL
+        SELECT 'feb' as month, 'north' as region, 1648 as sales UNION ALL
+        SELECT 'mar' as month, 'north' as region, 1707 as sales UNION ALL
+        SELECT 'jan' as month, 'south' as region, 1809 as sales UNION ALL
         SELECT 'feb' as month, 'south' as region, 1900 as sales UNION ALL
         SELECT 'mar' as month, 'south' as region, 1300 as sales UNION ALL
         SELECT 'jan' as month, 'west' as region, 1200 as sales UNION ALL

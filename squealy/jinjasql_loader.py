@@ -9,7 +9,30 @@ from werkzeug.exceptions import HTTPException
 class InvalidDateRangeException(HTTPException):
     code = 400
 
-def configure_jinjasql():
+class JinjaWrapper:
+    """Wraps JinjaSQL object to work around some quirks in JinjaSQL
+    
+        Quirk 1: Expose param_style as a function parameter 
+        JinjaSQL exposes param_style as a constructor argument. This is less than ideal,
+        because we have to support multiple databases and each may have a different param style.
+        
+        Quirk 2: When param_style = qmark, return a list of bind params
+        SQLite requires that bind parameters are provided as a list. But JinjaSQL returns an ordered dict instead.
+        So we convert ordered dict to list
+
+    """
+    def __init__(self):
+        self.qmark_jinja = configure_jinjasql('qmark')
+        self.default_jinja = configure_jinjasql('format')
+    
+    def prepare_query(self, query, context, param_style):
+        jinja = self.qmark_jinja if param_style == 'qmark' else self.default_jinja
+        final_query, bind_params = jinja.prepare_query(query, context)
+        if param_style in ('qmark', 'format', 'numeric'):
+            bind_params = list(bind_params)
+        return (final_query, bind_params)
+
+def configure_jinjasql(param_style):
     """
     Configure the environment and return jinjaSql object
     """
@@ -26,7 +49,7 @@ def configure_jinjasql():
     env.globals['get_date_diff'] = get_date_diff
     env.globals['calculate_start_date'] = calculate_start_date
     env.globals['get_today'] = get_today
-    return JinjaSql(env, param_style='qmark')
+    return JinjaSql(env, param_style=param_style)
 
 
 def get_date_diff(start_date, end_date, parameter):

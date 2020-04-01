@@ -5,7 +5,7 @@ from pathlib import Path
 import yaml
 from collections import defaultdict
 from sqlalchemy import create_engine
-from .jinjasql_loader import configure_jinjasql
+from .jinjasql_loader import JinjaWrapper
 from .formatters import GoogleChartsFormatter
 from .table import Table
 
@@ -24,12 +24,22 @@ def load_objects(base_dir):
             chart = load_chart(rawobj)
             objects['charts'][chart.slug] = chart
         elif kind == 'datasource':
-            url = rawobj['url']
-            engine = create_engine(url)
-            objects['datasources'][rawobj['id']] = engine
+            objects['datasources'][rawobj['id']] = load_engine(rawobj)
         else:
             raise Exception(f"Unknown object of kind = {kind} in {ymlfile}")
     return objects
+
+def load_engine(rawobj):
+    url = rawobj['url']
+    engine = create_engine(url)
+    _identify_param_style(engine)
+    return engine
+
+def _identify_param_style(engine):
+    if 'sqlite' in type(engine.dialect).__module__:
+        engine.param_style = 'qmark'
+    else:
+        engine.param_style = 'format'
 
 def load_chart(raw_chart):
     id_ = raw_chart['id']
@@ -59,9 +69,9 @@ class Chart:
             "params": params
         }
 
-        finalquery, bindparams = jinja.prepare_query(self.query, context)
+        finalquery, bindparams = jinja.prepare_query(self.query, context, engine.param_style)
         with engine.connect() as conn:
-            result = conn.execute(finalquery, list(bindparams))
+            result = conn.execute(finalquery, bindparams)
             rows = []
             for db_row in result:
                 row_list = []
@@ -209,4 +219,4 @@ objects = load_objects("/home/sri/apps/squealy/squealy/fixtures/basic_loading")
 charts = objects['charts']
 datasources = objects['datasources']
 config = objects['config']
-jinja = configure_jinjasql()
+jinja = JinjaWrapper()

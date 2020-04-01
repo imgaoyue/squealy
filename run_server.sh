@@ -1,0 +1,1 @@
+FLASK_APP=squealy FLASK_ENV=development flask run 
