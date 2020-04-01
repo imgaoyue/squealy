@@ -3,6 +3,12 @@ id: postgresdb
 url: "postgresql://postgres:secret@localhost"
 
 ---
+
+kind: datasource
+id: mysqldb
+url: "mysql://adventureworks:adventureworks%40123@127.0.0.1:3306/adventureworks"
+
+---
 kind: datasource
 id: sqlitedb
 url: "sqlite:///salesdb:memory"
@@ -10,7 +16,7 @@ url: "sqlite:///salesdb:memory"
 ---
 kind: chart
 id: monthly-sales-by-region
-datasource: postgresdb 
+datasource: mysqldb
 query: |
     SELECT month, region, sales from (
         SELECT 'jan' as month, 'north' as region, 1528 as sales UNION ALL
