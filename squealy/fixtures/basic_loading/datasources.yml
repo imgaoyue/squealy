@@ -1,0 +1,9 @@
+- id: postgresdb
+  password: 
+  url: "postgresql://postgres:{{env.PG_PASSWORD}}@localhost"
+- id: mysqldb
+  url: "mysql://adventureworks:{{env.MYSQL_PASSWORD}}@127.0.0.1:3306/adventureworks"
+- id: sqlitedb
+  url: "sqlite:///salesdb:memory"
+- id: mssqldb
+  url: "mssql+pymssql://sa:{{env.MSSQL_PASSWORD}}@localhost:1433"

@@ -1,76 +1,41 @@
 import arrow
 import datetime
 from werkzeug.exceptions import HTTPException
-from pathlib import Path
-import yaml
-from collections import defaultdict
-from sqlalchemy import create_engine
 from .jinjasql_loader import JinjaWrapper
 from .formatters import GoogleChartsFormatter
 from .table import Table
 
-def raw_objects(base_dir):
-    for ymlfile in Path(base_dir).rglob("*.yml"):
-        with open(ymlfile) as f:
-            objects = yaml.safe_load_all(f)
-            for rawobj in objects:
-                yield (rawobj, ymlfile)
-
-def load_objects(base_dir):
-    objects = defaultdict(dict)
-    for rawobj, ymlfile in raw_objects(base_dir):
-        kind = rawobj['kind']
-        if kind == 'chart':
-            chart = load_chart(rawobj)
-            objects['charts'][chart.slug] = chart
-        elif kind == 'datasource':
-            objects['datasources'][rawobj['id']] = load_engine(rawobj)
-        else:
-            raise Exception(f"Unknown object of kind = {kind} in {ymlfile}")
-    return objects
-
-def load_engine(rawobj):
-    url = rawobj['url']
-    engine = create_engine(url)
-    _identify_param_style(engine)
-    return engine
-
-def _identify_param_style(engine):
-    if 'sqlite' in type(engine.dialect).__module__:
-        engine.param_style = 'qmark'
-    else:
-        engine.param_style = 'format'
-
-def load_chart(raw_chart):
-    id_ = raw_chart['id']
-    slug = raw_chart['slug'] if 'slug' in raw_chart else id_
-    name = raw_chart['name'] if 'name' in raw_chart else id_
-    query = raw_chart['query']
-    datasource = raw_chart['datasource']
-    return Chart(id_, slug, name, query, datasource)
+jinja = JinjaWrapper()
 
 class Chart:
-    def __init__(self, id_, slug, name, query, datasource, 
+    def __init__(self, id_, query, engine, slug=None, name=None, config = None,
                     transformations=None, formatter=None, options=None):
+        # A unique id for this chart
         self.id_ = id_
-        self.slug = slug
-        self.name = name
+        
+        # The query to execute
         self.query = query
-        self.datasource = datasource
+        
+        # The database engine against which to execute the query
+        self.engine = engine
+
+        self.slug = slug if slug else id_
+        self.name = name if name else id_
+        
+        self.config = config or {}
         self.transformations = transformations or []
         self.formatter = formatter if formatter else GoogleChartsFormatter()
         self.options = options or {}
-
+        
     def process(self, user, params):
-        engine = datasources[self.datasource]
         context = {
-            "config": config,
+            "config": self.config,
             "user": user,
             "params": params
         }
 
-        finalquery, bindparams = jinja.prepare_query(self.query, context, engine.param_style)
-        with engine.connect() as conn:
+        finalquery, bindparams = jinja.prepare_query(self.query, context, self.engine.param_style)
+        with self.engine.connect() as conn:
             result = conn.execute(finalquery, bindparams)
             rows = []
             for db_row in result:
@@ -214,9 +179,3 @@ class Number(Parameter):
                 return float(value)
         except ValueError:
             raise NumberParseException("Cannot parse to int or float"+ value)
-
-objects = load_objects("/home/sri/apps/squealy/squealy/fixtures/basic_loading")
-charts = objects['charts']
-datasources = objects['datasources']
-config = objects['config']
-jinja = JinjaWrapper()
