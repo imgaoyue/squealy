@@ -6,14 +6,25 @@ from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 import os
 from .charts import Chart
 
-def load_charts(base_dir):
-    
+def load_config():
+    base_dir = os.environ.get("SQUEALY_BASE_DIR", "/squealy/")
+    jinja_env = Environment(loader=FileSystemLoader(base_dir))
+    config = {"SQUEALY_BASE_DIR": base_dir}
+    try:
+        template = jinja_env.get_template("config.yml")
+    except TemplateNotFound:
+        return config
+
+    config_file = template.render({"env": os.environ})
+    loaded_config = yaml.safe_load(config_file)
+    if loaded_config:
+        config.update(loaded_config)
+    return config
+
+def load_charts(config):
+    base_dir = config['SQUEALY_BASE_DIR']
     # Yaml files can have jinja templates embedded
     jinja_env = Environment(loader=FileSystemLoader(base_dir))
-
-    # First load config.yml so that any variables exposed in it 
-    # can be used in subsequent templates
-    config = _load_config(jinja_env)
     engines = _load_datasources(jinja_env, config)
 
     charts = {}
@@ -52,12 +63,6 @@ def load_charts(base_dir):
                     raise Exception(f"Unknown object of kind = {kind} in {ymlfile}")
     return charts
 
-def _load_config(jinja_env):
-    template = jinja_env.get_template("config.yml")
-    config_file = template.render({"env": os.environ})
-    config = yaml.safe_load(config_file)
-    return config
-
 def _load_datasources(jinja_env, config):
     template = jinja_env.get_template("datasources.yml")
     datasources = template.render({"env": os.environ, "config": config})
@@ -90,7 +95,3 @@ def _load_chart(raw_chart, config, engine):
         raise Exception(f"Missing query in chart {id_}, file {raw_chart['__sourcefile__']} ")
     
     return Chart(id_, query, engine, slug=slug, name=name, config=config)
-
-
-if __name__ == '__main__':
-    charts = load_charts("/home/sri/apps/squealy/squealy/fixtures/basic_loading")

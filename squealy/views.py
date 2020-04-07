@@ -3,9 +3,9 @@ from werkzeug.exceptions import Unauthorized
 from .charts import ChartNotFoundException, Chart
 from functools import wraps
 import jwt
-from .loader import load_charts
 
-from squealy import app
+from squealy import app, charts
+
 
 def login_required(f):
     @wraps(f)
@@ -34,5 +34,3 @@ def render_chart(chart_id):
     chart = charts[chart_id]
     params = request.args
     return chart.process(request.user, params)
-
-charts = load_charts("/home/sri/apps/squealy/squealy/fixtures/basic_loading")
