@@ -7,6 +7,8 @@ services:
       DEBUG: "false"
       SECRET_KEY: secret
       PG_PASSWORD: squealypg
+      MYSQL_PASSWORD: squealy1234
+      MSSQL_PASSWORD: "yourStrong(@!)Password"
     ports:
     - "8000:8000"
     volumes: 
@@ -14,7 +16,19 @@ services:
   adventureworks-postgres:
     container_name: adventureworks-postgres
     image: adventureworks
-    ports:
-    - "5432:5432"
     environment:
       POSTGRES_PASSWORD: squealypg
+  squealy-mysq-57:
+    container_name: squealy-mysql-57
+    image: mysql:5.7.29
+    environment: 
+      MYSQL_ROOT_PASSWORD: squealyRootPassword
+      MYSQL_DATABASE: squealy
+      MYSQL_USER: squealy
+      MYSQL_PASSWORD: squealy1234
+  squealy-mssql-2017:
+    container_name: squealy-mssql-2017
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment: 
+      ACCEPT_EULA: Y
+      SA_PASSWORD: "yourStrong(@!)Password"

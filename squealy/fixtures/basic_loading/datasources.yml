@@ -2,8 +2,8 @@
   password: 
   url: "postgresql://postgres:{{env.PG_PASSWORD}}@adventureworks-postgres"
 - id: mysqldb
-  url: "mysql://adventureworks:{{env.MYSQL_PASSWORD}}@127.0.0.1:3306/adventureworks"
+  url: "mysql://squealy:{{env.MYSQL_PASSWORD}}@squealy-mysql/squealy"
 - id: sqlitedb
   url: "sqlite:///:memory"
 - id: mssqldb
-  url: "mssql+pymssql://sa:{{env.MSSQL_PASSWORD}}@localhost:1433"
+  url: "mssql+pymssql://sa:{{ env.MSSQL_PASSWORD }}@squealy-mssql-2017:1433"
