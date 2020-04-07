@@ -1,0 +1,14 @@
+.git
+venv
+__pycache__/
+*.py[cod]
+*.so
+*.log
+*.pot
+db.sqlite3
+pre-commit.sh
+.vscode
+development.txt
+docker-compose.yml
+Dockerfile
+htmlcov

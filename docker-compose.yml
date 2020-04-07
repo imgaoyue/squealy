@@ -1,0 +1,20 @@
+version: '3'
+services:
+  web:
+    container_name: squealy
+    build: .
+    environment:
+      DEBUG: "false"
+      SECRET_KEY: secret
+      PG_PASSWORD: squealypg
+    ports:
+    - "8000:8000"
+    volumes: 
+    - "./squealy/fixtures/basic_loading:/squealy"
+  adventureworks-postgres:
+    container_name: adventureworks-postgres
+    image: adventureworks
+    ports:
+    - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: squealypg
