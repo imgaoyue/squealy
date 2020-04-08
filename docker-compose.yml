@@ -9,10 +9,12 @@ services:
       PG_PASSWORD: squealypg
       MYSQL_PASSWORD: squealy1234
       MSSQL_PASSWORD: "yourStrong(@!)Password"
+      LD_LIBRARY_PATH: /opt/oracle/instantclient_19_6
     ports:
     - "8000:8000"
     volumes: 
     - "./squealy/fixtures/basic_loading:/squealy"
+    - "./drivers/instantclient_19_6:/opt/oracle/instantclient_19_6"
   adventureworks-postgres:
     container_name: adventureworks-postgres
     image: adventureworks
@@ -32,3 +34,6 @@ services:
     environment: 
       ACCEPT_EULA: Y
       SA_PASSWORD: "yourStrong(@!)Password"
+  squealy-oracle-xe-11g:
+    container_name: squealy-oracle-xe-11g
+    image: oracleinanutshell/oracle-xe-11g:latest

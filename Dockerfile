@@ -26,15 +26,15 @@ ENV PYTHONUNBUFFERED 1
 # Workdir creates the directory if it doesn't exist
 WORKDIR /code
 
-# This installs libpq5, which is the postgres native driver
-# This is needed later when we install psycopg2
+# These are the libraries needed at run time
+# - libpq5 is the postgres native driver, this is needed later when we install psycopg2
+# - default-libmysqlclient-dev is needed for MySQL. There may be a lighter package, but we haven't found it out
+# - libaio1 is needed for oracle driver
 RUN set -ex \
-    && apt-get update && apt-get install -y --no-install-recommends libpq5 default-libmysqlclient-dev \
+    && apt-get update && apt-get install -y --no-install-recommends libpq5 default-libmysqlclient-dev libaio1 \
     && rm -rf /var/lib/apt/lists/*
 
-
 # Now copy requirements.txt and install all dependencies
-# As a best practice, you should pin down version numbers in requirements.txt
 
 COPY requirements.txt .
 

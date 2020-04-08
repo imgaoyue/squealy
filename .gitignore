@@ -21,3 +21,6 @@ static/*
 
 # Sqlite file
 salesdb:memory
+
+# Oracle native drivers 
+drivers/instantclient_19_6/*

@@ -1,6 +1,6 @@
 kind: chart
 id: monthly-sales-by-region
-datasource: mssqldb
+datasource: oracledb
 query: |
     SELECT month, region, sales from (
         SELECT 'jan' as month, 'north' as region, 1828 as sales UNION ALL
@@ -16,3 +16,24 @@ query: |
         SELECT 'feb' as month, 'east' as region, 1600 as sales UNION ALL
         SELECT 'mar' as month, 'east' as region, 1500 as sales
     ) s {% if params.region %} where s.region = {{params.region}} {% endif %}
+
+
+kind: chart
+id: monthly-sales-oracle
+datasource: oracledb
+query: |
+    SELECT month, region, sales from (
+        SELECT 'jan' as month, 'north' as region, 1828 as sales from dual UNION ALL
+        SELECT 'feb' as month, 'north' as region, 1648 as sales from dual UNION ALL
+        SELECT 'mar' as month, 'north' as region, 1907 as sales from dual UNION ALL
+        SELECT 'jan' as month, 'south' as region, 1809 as sales from dual UNION ALL
+        SELECT 'feb' as month, 'south' as region, 1900 as sales from dual UNION ALL
+        SELECT 'mar' as month, 'south' as region, 1300 as sales from dual UNION ALL
+        SELECT 'jan' as month, 'west' as region, 1200 as sales from dual UNION ALL
+        SELECT 'feb' as month, 'west' as region, 1000 as sales from dual UNION ALL
+        SELECT 'mar' as month, 'west' as region, 2000 as sales from dual UNION ALL
+        SELECT 'jan' as month, 'east' as region, 2100 as sales from dual UNION ALL
+        SELECT 'feb' as month, 'east' as region, 1600 as sales from dual UNION ALL
+        SELECT 'mar' as month, 'east' as region, 1500 as sales from dual
+    ) s {% if params.region %} where s.region = {{params.region}} {% endif %}
+    

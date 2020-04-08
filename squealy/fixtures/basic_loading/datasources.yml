@@ -7,3 +7,5 @@
   url: "sqlite:///:memory"
 - id: mssqldb
   url: "mssql+pymssql://sa:{{ env.MSSQL_PASSWORD }}@squealy-mssql-2017:1433"
+- id: oracledb
+  url: "oracle+cx_oracle://system:oracle@squealy-oracle-xe-11g:1521/xe"

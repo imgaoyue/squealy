@@ -27,3 +27,6 @@ mysqlclient==1.4.6
 
 # MS SQL Server Driver
 pymssql==2.1.4
+
+# Oracle Driver
+cx-Oracle==7.3.0
