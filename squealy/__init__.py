@@ -1,7 +1,14 @@
+# We load the configuration, charts, public key etc. BEFORE we load flask
+# This way, if there is a configuration issue, we fail-fast. 
+
 # Load the configuration first, and then load charts
-from .loader import load_config, load_charts
+from .loader import load_config, load_charts, load_jwt_public_key
 _config = load_config()
 charts = load_charts(_config)
+
+# This public key is used to verify JWT tokens
+load_jwt_public_key(_config)
+
 
 # Next, load flask with the configuration we just loaded
 from flask import Flask

@@ -19,7 +19,7 @@ def login_required(f):
                 raise Unauthorized(description="Invalid Authorization Header Format")
             token = auth_header.split(' ')[1]
         try:
-            request.user = jwt.decode(token, app.secret_key, algorithm='HS256')
+            request.user = jwt.decode(token, app.config['__PUBLIC_KEY__'], algorithm='RS256')
         except jwt.exceptions.InvalidTokenError as e:
             raise Unauthorized(description="Invalid JWT in Authorization Header")
         return f(*args, **kwargs)

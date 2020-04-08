@@ -1,6 +1,6 @@
 kind: chart
 id: monthly-sales-by-region
-datasource: oracledb
+datasource: sqlitedb
 query: |
     SELECT month, region, sales from (
         SELECT 'jan' as month, 'north' as region, 1828 as sales UNION ALL
@@ -17,6 +17,7 @@ query: |
         SELECT 'mar' as month, 'east' as region, 1500 as sales
     ) s {% if params.region %} where s.region = {{params.region}} {% endif %}
 
+---
 
 kind: chart
 id: monthly-sales-oracle

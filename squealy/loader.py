@@ -21,6 +21,19 @@ def load_config():
         config.update(loaded_config)
     return config
 
+def load_jwt_public_key(config):
+    'Load JWT public key and store it in config.public_key'
+    base_dir = config['SQUEALY_BASE_DIR']
+    public_key_file = _get_first_file(config.get("PUBLIC_KEY_FILE"), os.path.join(base_dir, "public.pem"))
+    if not public_key_file:
+        raise Exception("Public key not found. This is needed to verify JWT tokens")
+    with open(public_key_file) as f:
+        public_key = f.read()
+    
+    if not public_key.startswith("-----BEGIN PUBLIC KEY-----"):
+        raise Exception(f'Public key does not start with -----BEGIN PUBLIC KEY-----')
+    config['__PUBLIC_KEY__'] = public_key
+
 def load_charts(config):
     base_dir = config['SQUEALY_BASE_DIR']
     # Yaml files can have jinja templates embedded
@@ -70,11 +83,11 @@ def _load_datasources(jinja_env, config):
     engines = {}
     for raw_source in datasources:
         id_ = raw_source["id"]
-        engine = load_engine(raw_source)
+        engine = _load_engine(raw_source)
         engines[id_] = engine
     return engines
 
-def load_engine(rawobj):
+def _load_engine(rawobj):
     url = rawobj['url']
     engine = create_engine(url)
     _identify_param_style(engine)
@@ -95,3 +108,12 @@ def _load_chart(raw_chart, config, engine):
         raise Exception(f"Missing query in chart {id_}, file {raw_chart['__sourcefile__']} ")
     
     return Chart(id_, query, engine, slug=slug, name=name, config=config)
+
+
+def _get_first_file(*files):
+    for f in files:
+        if not f:
+            continue
+        if os.path.exists(f):
+            return f
+    return None
