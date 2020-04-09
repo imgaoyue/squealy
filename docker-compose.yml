@@ -1,20 +1,18 @@
 version: '3'
 services:
   web:
-    container_name: squealy
-    build: .
+    container_name: squealy-dev
+    build:
+      context: ./
+      dockerfile: dev.Dockerfile
     environment:
-      DEBUG: "false"
-      SECRET_KEY: secret
       PG_PASSWORD: squealypg
       MYSQL_PASSWORD: squealy1234
       MSSQL_PASSWORD: "yourStrong(@!)Password"
-      LD_LIBRARY_PATH: /opt/oracle/instantclient_19_6
     ports:
-    - "8000:8000"
+    - "5000:5000"
     volumes: 
-    - "./squealy/fixtures/basic_loading:/squealy"
-    - "./drivers/instantclient_19_6:/opt/oracle/instantclient_19_6"
+    - "./:/code"
   adventureworks-postgres:
     container_name: adventureworks-postgres
     image: adventureworks
