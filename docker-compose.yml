@@ -1,16 +1,11 @@
 version: '3'
 services:
-  web:
-    container_name: squealy-dev
+  api:
     build:
       context: ./
       dockerfile: dev.Dockerfile
     environment:
-      PG_PASSWORD: squealypg
-      MYSQL_PASSWORD: squealy1234
-      MSSQL_PASSWORD: "yourStrong(@!)Password"
       FLASK_RUN_HOST: "0.0.0.0"
-      LD_LIBRARY_PATH: "/code/drivers/instantclient_19_6"
       SQUEALY_BASE_DIR: /code/squealy-home
       FLASK_APP: squealy
       FLASK_ENV: development
@@ -18,25 +13,3 @@ services:
     - "5000:5000"
     volumes: 
     - "./:/code"
-  adventureworks-postgres:
-    container_name: adventureworks-postgres
-    image: adventureworks
-    environment:
-      POSTGRES_PASSWORD: squealypg
-  squealy-mysq-57:
-    container_name: squealy-mysql-57
-    image: mysql:5.7.29
-    environment: 
-      MYSQL_ROOT_PASSWORD: squealyRootPassword
-      MYSQL_DATABASE: squealy
-      MYSQL_USER: squealy
-      MYSQL_PASSWORD: squealy1234
-  squealy-mssql-2017:
-    container_name: squealy-mssql-2017
-    image: mcr.microsoft.com/mssql/server:2017-latest
-    environment: 
-      ACCEPT_EULA: Y
-      SA_PASSWORD: "yourStrong(@!)Password"
-  squealy-oracle-xe-11g:
-    container_name: squealy-oracle-xe-11g
-    image: oracleinanutshell/oracle-xe-11g:latest

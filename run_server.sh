@@ -1,1 +1,0 @@
-LD_LIBRARY_PATH=/home/sri/apps/instantclient_19_6 SQUEALY_BASE_DIR=./squealy/fixtures/basic_loading FLASK_APP=squealy FLASK_ENV=development flask run --extra-files=./squealy/fixtures/basic_loading/charts.yml

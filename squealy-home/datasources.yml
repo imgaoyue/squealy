@@ -8,4 +8,4 @@
 - id: mssqldb
   url: "mssql+pymssql://sa:{{ env.MSSQL_PASSWORD }}@squealy-mssql-2017:1433"
 - id: oracledb
-  url: "oracle+cx_oracle://system:oracle@squealy-oracle-xe-11g:1521/xe"
+  url: "oracle+cx_oracle://system:{{ env.ORACLE_PASSWORD }}@squealy-oracle-xe-11g:1521/xe"

@@ -1,0 +1,26 @@
+version: '3'
+services:
+  api:
+    environment:
+      PG_PASSWORD: squealypg
+      MYSQL_PASSWORD: squealy1234
+      MSSQL_PASSWORD: "yourStrong(@!)Password"
+      ORACLE_PASSWORD: secret
+  adventureworks-postgres:
+    image: squealy/adventureworks-postgres
+    environment:
+      POSTGRES_PASSWORD: squealypg
+  mysq-57:
+    image: mysql:5.7.29
+    environment: 
+      MYSQL_ROOT_PASSWORD: squealyRootPassword
+      MYSQL_DATABASE: squealy
+      MYSQL_USER: squealy
+      MYSQL_PASSWORD: squealy1234
+  mssql-2017:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment: 
+      ACCEPT_EULA: Y
+      SA_PASSWORD: "yourStrong(@!)Password"
+  oracle-xe-11g:
+    image: oracleinanutshell/oracle-xe-11g:latest
