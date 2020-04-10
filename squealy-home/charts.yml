@@ -3,8 +3,8 @@ id: monthly-sales-by-region
 datasource: sqlitedb
 query: |
     SELECT month, region, sales from (
-        SELECT 'jan' as month, 'north' as region, 1024 as sales UNION ALL
-        SELECT 'feb' as month, 'north' as region, 1648 as sales UNION ALL
+        SELECT 'jan' as month, 'north' as region, 9876 as sales UNION ALL
+        SELECT 'feb' as month, 'north' as region, 4567 as sales UNION ALL
         SELECT 'mar' as month, 'north' as region, 1907 as sales UNION ALL
         SELECT 'jan' as month, 'south' as region, 1809 as sales UNION ALL
         SELECT 'feb' as month, 'south' as region, 1900 as sales UNION ALL

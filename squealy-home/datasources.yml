@@ -4,7 +4,7 @@
 - id: mysqldb
   url: "mysql://squealy:{{env.MYSQL_PASSWORD}}@squealy-mysql/squealy"
 - id: sqlitedb
-  url: "sqlite:///:memory"
+  url: "sqlite:////tmp/sqlite.db"
 - id: mssqldb
   url: "mssql+pymssql://sa:{{ env.MSSQL_PASSWORD }}@squealy-mssql-2017:1433"
 - id: oracledb

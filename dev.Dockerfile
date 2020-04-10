@@ -10,6 +10,12 @@ ENV PYTHONUNBUFFERED 1
 # Workdir creates the directory if it doesn't exist
 WORKDIR /code
 
+
+# Create a user gunicorn so that we don't have to use root user
+# We switch to gunicorn user at the bottom of this script
+RUN groupadd --gid 1000 gunicorn \
+  && useradd --uid 1000 --gid gunicorn --shell /bin/bash --create-home gunicorn
+
 # These are the libraries needed at run time
 # - libpq5 is the postgres native driver, this is needed later when we install psycopg2
 # - default-libmysqlclient-dev is needed for MySQL. There may be a lighter package, but we haven't found it out
@@ -17,8 +23,6 @@ WORKDIR /code
 RUN set -ex \
     && apt-get update && apt-get install -y --no-install-recommends libpq5 default-libmysqlclient-dev libaio1 \
     && rm -rf /var/lib/apt/lists/*
-
-# Many python libraries 
 
 COPY requirements.txt .
 
@@ -34,21 +38,11 @@ RUN set -ex \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $BUILD_DEPS \
     && rm -rf /var/lib/apt/lists/*
 
-# Set flask host to 0.0.0.0 so that we can access flask from outside docker
-ENV FLASK_RUN_HOST=0.0.0.0
+COPY docker-entrypoint.sh docker-entrypoint.sh
 
-# Set this to the path where oracle native drivers are installed
-ENV LD_LIBRARY_PATH /code/drivers/instantclient_19_6
 
-# This is the directory where squealy expects to find config, datasources and charts
-ENV SQUEALY_BASE_DIR /code/squealy/fixtures/basic_loading
+# Switch to gunicorn user
+# This is to ensure parity with production image
+USER gunicorn
 
-# The module which contains flask code
-ENV FLASK_APP squealy
-ENV FLASK_ENV development
-
-# First, find all yml files in SQUEALY_BASE_DIR
-# Then, concatenate them into a string with : as separator
-# Then, store this string in a variable FILES_TO_WATCH
-# Finally, start flask, and instruct it to watch all yml files
-CMD /bin/bash -c export FILES_TO_WATCH=$(find /code/squealy/fixtures/basic_loading -type f -name "*.yml" | tr '\n' ':') && echo $FILES_TO_WATCH && flask run 
+ENTRYPOINT [ "/code/docker-entrypoint.sh" ]

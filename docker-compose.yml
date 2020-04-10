@@ -9,6 +9,11 @@ services:
       PG_PASSWORD: squealypg
       MYSQL_PASSWORD: squealy1234
       MSSQL_PASSWORD: "yourStrong(@!)Password"
+      FLASK_RUN_HOST: "0.0.0.0"
+      LD_LIBRARY_PATH: "/code/drivers/instantclient_19_6"
+      SQUEALY_BASE_DIR: /code/squealy-home
+      FLASK_APP: squealy
+      FLASK_ENV: development
     ports:
     - "5000:5000"
     volumes: 
