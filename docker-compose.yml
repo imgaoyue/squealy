@@ -4,11 +4,6 @@ services:
     build:
       context: ./
       dockerfile: dev.Dockerfile
-    environment:
-      FLASK_RUN_HOST: "0.0.0.0"
-      SQUEALY_BASE_DIR: /code/squealy-home
-      FLASK_APP: squealy
-      FLASK_ENV: development
     ports:
     - "5000:5000"
     volumes: 

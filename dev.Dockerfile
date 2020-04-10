@@ -40,6 +40,10 @@ RUN set -ex \
 
 COPY docker-entrypoint.sh docker-entrypoint.sh
 
+ENV FLASK_RUN_HOST "0.0.0.0"
+ENV SQUEALY_BASE_DIR "/code/squealy-home"
+ENV FLASK_APP "squealy"
+ENV FLASK_ENV "development"
 
 # Switch to gunicorn user
 # This is to ensure parity with production image
