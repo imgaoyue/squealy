@@ -1,6 +1,6 @@
 import decimal
 from werkzeug.exceptions import HTTPException
-from .transformers import Split
+from .table import Split
 
 class InvalidChartDataException(HTTPException):
     code = 404
@@ -9,16 +9,12 @@ class Formatter:
     def format(self, table):
         pass
 
-
 class SimpleFormatter(Formatter):
-
     def format(self, table, chart_type=None):
         data = {"columns": table.columns, "data": table.data}
         return data
 
-
 class GoogleChartsFormatter(Formatter):
-
     def _generate_chart_data(self, table, x_axis_column_index, is_table=False):
         """
         Converts the query response to data format desired by google charts

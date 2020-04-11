@@ -1,6 +1,25 @@
 kind: chart
 id: monthly-sales-by-region
 datasource: sqlitedb
+authentication:
+    is_public: true
+    requires_authentication: true
+authorization:    
+    - id: whitelist
+      description: whitelist of allowed users
+      rule: |
+        "{{ user.userid }} in ('joe', 'buck', 'sri')"
+    - id: macro_example
+      description: Uses a jinja macro 
+      rule: |
+         "{{ has_role(user, "editor", "author") }}"
+    - id: sql_based_rule
+      description: Check user has access to the requested organization
+      sql: |
+        SELECT 'x' from organization o 
+        INNER JOIN organization_users ou on o.id = ou.organization_id
+        INNER JOIN users u on ou.user_id = u.id
+        WHERE u.id = {{ user.userid }} and o.id = {{ params.orgid }}
 query: |
     SELECT month, region, sales from (
         SELECT 'jan' as month, 'north' as region, 6543 as sales UNION ALL
@@ -16,6 +35,19 @@ query: |
         SELECT 'feb' as month, 'east' as region, 1600 as sales UNION ALL
         SELECT 'mar' as month, 'east' as region, 1500 as sales
     ) s {% if params.region %} where s.region = {{params.region}} {% endif %}
+transformations:
+    - kind: pivot
+      pivot_on: region
+      new_columns: all_distinct_values
+      new_columns: ['north', 'south']
+      metric_columns: ['sales']
+      include_others: true
+    - kind: transpose
+presentation:
+    formatter: GoogleChart
+    chart_type: ColumnChart
+    
+
 
 ---
 
