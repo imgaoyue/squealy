@@ -12,13 +12,21 @@ load_jwt_public_key(_config)
 
 # Next, load flask with the configuration we just loaded
 from flask import Flask
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from prometheus_client import make_wsgi_app
+
+# app is used by views.py to register routes
 app = Flask(__name__)
 app.secret_key = 'secret'
 app.config.update(_config)
 
-# app is the canonical name within flask ...
-# ... but wsgi / gunicorn expects it to be called application
-application = app
+# Add prometheus wsgi middleware to route /metrics requests
+# application object is then used by wsgi / gunicorn to startup the application
+# NOTE: This means prometheus metrics are not exposed in development mode
+application = DispatcherMiddleware(app, {
+    '/metrics': make_wsgi_app()
+})
+
 
 # Importing views is a circular dependency
 # but if we have to use decorators, it is the only way

@@ -1,0 +1,19 @@
+# This contains libraries that a) do not change frequently or b) require c code compilation to work
+# We install these libraries as a single layer in our base docker image
+
+# To decode JWT tokens.
+# cryptography is actually a transitive dependency, and only needed because PyJWT needs it
+PyJWT==1.7.1
+cryptography==2.9
+
+# Postgres driver
+psycopg2==2.8.4
+
+# Mysql driver
+mysqlclient==1.4.6
+
+# MS SQL Server Driver
+pymssql==2.1.4
+
+# Oracle Driver
+cx-Oracle==7.3.0

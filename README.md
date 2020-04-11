@@ -10,6 +10,8 @@ TODOs:
 1. Add a description column to the chart yaml file
 1. Make JWT tokens optional - i.e. some charts can be public
 1. Make URLs declarative - don't prepend /charts
+1. Support CORS headers via config.yml
+1. Export prometheus metrics
 
 Generating Public and Private Key Pair
 --------------------------------------

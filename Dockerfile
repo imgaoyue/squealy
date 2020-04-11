@@ -1,16 +1,3 @@
-# Notes
-# -----
-# 1. Uses a debian based system, not Alpine
-# 1. Assumes application is configurable via environment variables,
-#    and that there is a single settings.py file
-# 1. Assumes Django based application. For Flask, you will delete the collectstatic command. 
-#    Also, the wsgi application name in the ENTRYPOINT will also differ slightly.
-# 1. This installs Postgres *AND* MySQL in separate steps. 
-#    Delete either one or both depending on your use case
-# 1. We create a user without any permissions, not even write permissions. This means you cannot 
-#    write logs or create directories. You should write logs to stdout / stderr instead.
-#
-
 # This base image uses Debian operating system
 FROM python:3.7.7-slim
 
@@ -34,9 +21,11 @@ RUN set -ex \
     && apt-get update && apt-get install -y --no-install-recommends libpq5 default-libmysqlclient-dev libaio1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Now copy requirements.txt and install all dependencies
+# Now install all pip libraries that require compiling native code
+# Compiling native code usually requires several build-time packages
+# So we install build time package, then install pip libraries, and then uninstall build time packages
 
-COPY requirements.txt .
+COPY requirements.native.txt .
 
 RUN set -ex \
     && BUILD_DEPS=" \
@@ -46,13 +35,14 @@ RUN set -ex \
         python3-dev \
     " \
     && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS \
-    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir -r requirements.native.txt \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $BUILD_DEPS \
     && rm -rf /var/lib/apt/lists/*
 
-# ---------------------------------------------
-# From here, the steps are application specific
-# ---------------------------------------------
+
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt
 
 # Copy the remaining code
 # Avoid copying the current working directory, 
