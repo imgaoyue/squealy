@@ -44,13 +44,11 @@ class SecurityTests(SquealyTest):
             self.get_chart("default-security")
         
         chart = self.get_chart("default-security", user={"username": "sri"})
-        self.assertTrue('cols' in chart and 'rows' in chart)
-        self.assertEqual(len(chart['rows']), 3)
+        self.assertDictEqual(chart, {'columns': ['month', 'sales'], 'data': [['jan', 6543], ['feb', 4567], ['mar', 1907]]})
 
     def test_anonymous_chart(self):
         chart = self.get_chart("allow-anonymous")
-        self.assertTrue('cols' in chart and 'rows' in chart)
-        self.assertEqual(len(chart['rows']), 3)
+        self.assertDictEqual(chart, {'columns': ['month', 'sales'], 'data': [['jan', 6543], ['feb', 4567], ['mar', 1907]]})
 
     def test_token_in_header(self):
         url = self.chart_url("default-security")
@@ -58,4 +56,16 @@ class SecurityTests(SquealyTest):
         r = requests.get(url, headers={"Authorization": f"Bearer {token}"})
         r.raise_for_status()
         
-    
+    def test_fine_grained_acl(self):
+        north_user = {"username": "naresh", "regions": ["North"]}
+        north_chart = self.get_chart("only-show-data-from-users-region", user=north_user)
+
+        south_user = {"username": "sahil", "regions": ["South"]}
+        south_chart = self.get_chart("only-show-data-from-users-region", user=south_user)
+        
+        super_user = {"username": "admin", "regions": ["North", "South"]}
+        super_chart = self.get_chart("only-show-data-from-users-region", user=super_user)
+
+        self.assertEqual(north_chart, {'columns': ['month', 'sales'], 'data': [['jan', 10], ['feb', 20]]})
+        self.assertEqual(south_chart, {'columns': ['month', 'sales'], 'data': [['jan', 30], ['feb', 40]]})
+        self.assertEqual(super_chart, {'columns': ['month', 'sales'], 'data': [['jan', 40], ['feb', 60]]})

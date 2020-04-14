@@ -21,6 +21,24 @@ query: |
         SELECT 'mar' as month, 1907 as sales
     ) s
 ---
+
+kind: chart
+id: only-show-data-from-users-region
+datasource: sqlitedb
+authentication:
+    requires_authentication: true
+query: |
+    SELECT month, sum(sales) as sales from (
+        SELECT 'jan' as month, 'North' as region, 10 as sales UNION ALL
+        SELECT 'feb' as month, 'North' as region, 20 as sales UNION ALL
+        SELECT 'jan' as month, 'South' as region, 30 as sales UNION ALL
+        SELECT 'feb' as month, 'South' as region, 40 as sales
+    ) s
+    WHERE s.region in {{user.regions | inclause }}
+    GROUP BY month
+    ORDER BY month desc
+---
+    
 kind: chart
 id: monthly-sales-by-region
 datasource: sqlitedb

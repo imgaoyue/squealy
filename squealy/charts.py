@@ -2,7 +2,7 @@ import arrow
 import datetime
 from werkzeug.exceptions import HTTPException, Unauthorized
 from .jinjasql_loader import JinjaWrapper
-from .formatters import GoogleChartsFormatter
+from .formatters import SimpleFormatter
 from .table import Table
 
 jinja = JinjaWrapper()
@@ -26,7 +26,7 @@ class Chart:
         self.requires_authentication = requires_authentication
         self.config = config or {}
         self.transformations = transformations or []
-        self.formatter = formatter if formatter else GoogleChartsFormatter()
+        self.formatter = formatter if formatter else SimpleFormatter()
         self.options = options or {}
         
     def process(self, user, params):
