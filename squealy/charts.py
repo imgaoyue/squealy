@@ -1,6 +1,6 @@
 import arrow
 import datetime
-from werkzeug.exceptions import HTTPException, Unauthorized
+from werkzeug.exceptions import HTTPException, Unauthorized, Forbidden
 from .jinjasql_loader import JinjaWrapper
 from .formatters import SimpleFormatter
 from .table import Table
@@ -10,7 +10,7 @@ jinja = JinjaWrapper()
 class Chart:
     def __init__(self, id_, query, engine, slug=None, name=None, config = None,
                     transformations=None, formatter=None, options=None,
-                    requires_authentication=True):
+                    requires_authentication=True, authorization=None):
         # A unique id for this chart
         self.id_ = id_
         
@@ -24,19 +24,22 @@ class Chart:
         self.name = name if name else id_
         
         self.requires_authentication = requires_authentication
+        self.authorization = authorization or []
         self.config = config or {}
         self.transformations = transformations or []
         self.formatter = formatter if formatter else SimpleFormatter()
         self.options = options or {}
         
-    def process(self, user, params):
-        self._authorize(user)
+    def process(self, user, params):        
         context = {
             "config": self.config,
             "user": user,
             "params": params
         }
 
+        self._authenticate(user)
+        self._authorize(context)
+        
         finalquery, bindparams = jinja.prepare_query(self.query, context, self.engine.param_style)
         with self.engine.connect() as conn:
             result = conn.execute(finalquery, bindparams)
@@ -48,10 +51,22 @@ class Chart:
                 rows.append(row_list)
             table = Table(columns=result.keys(), data=rows)
             return self.formatter.format(table, 'ColumnChart')
-    
-    def _authorize(self, user):
+
+    def _authenticate(self, user):
         if self.requires_authentication and not user:
             raise Unauthorized()
+
+    def _authorize(self, context):
+        if not self.authorization:
+            return
+        
+        for authz in self.authorization:
+            finalquery, bindparams = jinja.prepare_query(authz['query'], context, self.engine.param_style)
+            print(finalquery, bindparams)
+            with self.engine.connect() as conn:
+                result = conn.execute(finalquery, bindparams)
+                if not result.first():
+                    raise Forbidden(authz['id'])
 
 
 class UnauthorizedException(HTTPException):

@@ -107,10 +107,19 @@ def _load_chart(raw_chart, config, engine):
     authentication = raw_chart.get('authentication', {"requires_authentication": True})
     requires_authentication = authentication["requires_authentication"]
     
+    authorization = raw_chart.get('authorization', [])
+    for authz in authorization:
+        if 'id' not in authz:
+            raise Exception("Authorization rule is missing id")
+        if 'query' not in authz:
+            raise Exception("Authorization rule is missing query")
+
     if not query:
         raise Exception(f"Missing query in chart {id_}, file {raw_chart['__sourcefile__']} ")
     
-    return Chart(id_, query, engine, slug=slug, name=name, config=config, requires_authentication=requires_authentication)
+    return Chart(id_, query, engine, slug=slug, name=name, config=config, 
+        requires_authentication=requires_authentication,
+        authorization=authorization)
 
 
 def _get_first_file(*files):

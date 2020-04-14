@@ -29,10 +29,10 @@ authentication:
     requires_authentication: true
 query: |
     SELECT month, sum(sales) as sales from (
-        SELECT 'jan' as month, 'North' as region, 10 as sales UNION ALL
-        SELECT 'feb' as month, 'North' as region, 20 as sales UNION ALL
-        SELECT 'jan' as month, 'South' as region, 30 as sales UNION ALL
-        SELECT 'feb' as month, 'South' as region, 40 as sales
+        SELECT 'jan' as month, 'north' as region, 10 as sales UNION ALL
+        SELECT 'feb' as month, 'north' as region, 20 as sales UNION ALL
+        SELECT 'jan' as month, 'south' as region, 30 as sales UNION ALL
+        SELECT 'feb' as month, 'south' as region, 40 as sales
     ) s
     WHERE s.region in {{user.regions | inclause }}
     GROUP BY month
@@ -40,41 +40,22 @@ query: |
 ---
     
 kind: chart
-id: monthly-sales-by-region
+id: authorization-check-via-sql-query
 datasource: sqlitedb
 authentication:
     requires_authentication: true
-authorization:    
-    - id: whitelist
-      description: whitelist of allowed users
-      rule: |
-        "{{ user.userid }} in ('joe', 'buck', 'sri')"
-    - id: macro_example
-      description: Uses a jinja macro 
-      rule: |
-         "{{ has_role(user, "editor", "author") }}"
+authorization:
     - id: sql_based_rule
-      description: Check user has access to the requested organization
-      sql: |
-        SELECT 'x' from organization o 
-        INNER JOIN organization_users ou on o.id = ou.organization_id
-        INNER JOIN users u on ou.user_id = u.id
-        WHERE u.id = {{ user.userid }} and o.id = {{ params.orgid }}
+      query: |
+        SELECT 'x' WHERE 
+            ( {{user.username}} = 'sri' and {{params.region}} in ('north', 'south') )
+            OR
+            ( {{user.username}} = 'ram' and {{params.region}} in ('east', 'west') )
 query: |
-    SELECT month, region, sales from (
-        SELECT 'jan' as month, 'north' as region, 6543 as sales UNION ALL
-        SELECT 'feb' as month, 'north' as region, 4567 as sales UNION ALL
-        SELECT 'mar' as month, 'north' as region, 1907 as sales UNION ALL
-        SELECT 'jan' as month, 'south' as region, 1809 as sales UNION ALL
-        SELECT 'feb' as month, 'south' as region, 1900 as sales UNION ALL
-        SELECT 'mar' as month, 'south' as region, 1300 as sales UNION ALL
-        SELECT 'jan' as month, 'west' as region, 1200 as sales UNION ALL
-        SELECT 'feb' as month, 'west' as region, 1000 as sales UNION ALL
-        SELECT 'mar' as month, 'west' as region, 2000 as sales UNION ALL
-        SELECT 'jan' as month, 'east' as region, 2100 as sales UNION ALL
-        SELECT 'feb' as month, 'east' as region, 1600 as sales UNION ALL
-        SELECT 'mar' as month, 'east' as region, 1500 as sales
-    ) s {% if params.region %} where s.region = {{params.region}} {% endif %}
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales
+    ) s
 transformations:
     - kind: pivot
       pivot_on: region
