@@ -10,21 +10,25 @@ from squealy import app, charts
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        token = request.args.get("accessToken", None)
-        if not token:
-            auth_header = request.headers.get('Authorization', None)
-            if not auth_header:
-                raise Unauthorized(description="Missing Authorization Token")
-            if not 'bearer' in auth_header.lower():
-                raise Unauthorized(description="Invalid Authorization Header Format")
-            token = auth_header.split(' ')[1]
-        try:
-            request.user = jwt.decode(token, app.config['__PUBLIC_KEY__'], algorithm='RS256')
-        except jwt.exceptions.InvalidTokenError as e:
-            raise Unauthorized(description="Invalid JWT in Authorization Header")
+        token = _extract_token(request)
+        if token:
+            try:
+                request.user = jwt.decode(token, app.config['__PUBLIC_KEY__'], algorithm='RS256')
+            except jwt.exceptions.InvalidTokenError as e:
+                request.user = None
+        else:
+            request.user = None
         return f(*args, **kwargs)
     return decorated_function
 
+def _extract_token(request):
+    token = request.args.get("accessToken", None)
+    if not token:
+        auth_header = request.headers.get('Authorization', None)
+        if auth_header and 'bearer' in auth_header.lower():
+            token = auth_header.split(' ')[1]
+    
+    return token
 
 @app.route('/charts/<chart_id>')
 @login_required

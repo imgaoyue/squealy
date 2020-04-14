@@ -11,7 +11,9 @@ TODOs:
 1. Make JWT tokens optional - i.e. some charts can be public
 1. Make URLs declarative - don't prepend /charts
 1. Support CORS headers via config.yml
-1. Export prometheus metrics
+1. Export prometheus metrics - DONE
+1. Consider positioning squealy as a rapid, readonly api generator?
+1. 
 
 Generating Public and Private Key Pair
 --------------------------------------

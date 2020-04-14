@@ -104,10 +104,13 @@ def _load_chart(raw_chart, config, engine):
     slug = raw_chart.get('slug', None)
     name = raw_chart.get('name', None)
     query = raw_chart.get('query', None)
+    authentication = raw_chart.get('authentication', {"requires_authentication": True})
+    requires_authentication = authentication["requires_authentication"]
+    
     if not query:
         raise Exception(f"Missing query in chart {id_}, file {raw_chart['__sourcefile__']} ")
     
-    return Chart(id_, query, engine, slug=slug, name=name, config=config)
+    return Chart(id_, query, engine, slug=slug, name=name, config=config, requires_authentication=requires_authentication)
 
 
 def _get_first_file(*files):

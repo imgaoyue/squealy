@@ -1,6 +1,6 @@
 import arrow
 import datetime
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, Unauthorized
 from .jinjasql_loader import JinjaWrapper
 from .formatters import GoogleChartsFormatter
 from .table import Table
@@ -9,7 +9,8 @@ jinja = JinjaWrapper()
 
 class Chart:
     def __init__(self, id_, query, engine, slug=None, name=None, config = None,
-                    transformations=None, formatter=None, options=None):
+                    transformations=None, formatter=None, options=None,
+                    requires_authentication=True):
         # A unique id for this chart
         self.id_ = id_
         
@@ -22,12 +23,14 @@ class Chart:
         self.slug = slug if slug else id_
         self.name = name if name else id_
         
+        self.requires_authentication = requires_authentication
         self.config = config or {}
         self.transformations = transformations or []
         self.formatter = formatter if formatter else GoogleChartsFormatter()
         self.options = options or {}
         
     def process(self, user, params):
+        self._authorize(user)
         context = {
             "config": self.config,
             "user": user,
@@ -45,6 +48,14 @@ class Chart:
                 rows.append(row_list)
             table = Table(columns=result.keys(), data=rows)
             return self.formatter.format(table, 'ColumnChart')
+    
+    def _authorize(self, user):
+        if self.requires_authentication and not user:
+            raise Unauthorized()
+
+
+class UnauthorizedException(HTTPException):
+    code = 401
 
 class ChartNotFoundException(HTTPException):
     code = 404

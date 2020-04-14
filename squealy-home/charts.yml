@@ -1,8 +1,30 @@
 kind: chart
+id: default-security
+datasource: sqlitedb
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s
+---
+
+kind: chart
+id: allow-anonymous
+datasource: sqlitedb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s
+---
+kind: chart
 id: monthly-sales-by-region
 datasource: sqlitedb
 authentication:
-    is_public: true
     requires_authentication: true
 authorization:    
     - id: whitelist

@@ -1,0 +1,6 @@
+requests==2.23.0
+
+# To create JWT tokens.
+# cryptography is actually a transitive dependency, and only needed because PyJWT needs it
+PyJWT==1.7.1
+cryptography==2.9

@@ -1,0 +1,1 @@
+BASE_URL=http://localhost:5000 PRIVATE_KEY=./squealy-home/private.pem python -m unittest discover -s tests -p *.py
