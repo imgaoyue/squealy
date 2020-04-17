@@ -6,6 +6,6 @@ jobs:
     name: docker-compose-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Download code and run docker-compose
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - name: Run the tests using docker-compose
         run: docker-compose -f docker-compose.ci.yml up --abort-on-container-exit --exit-code-from tests
