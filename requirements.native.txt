@@ -17,3 +17,6 @@ pymssql==2.1.4
 
 # Oracle Driver
 cx-Oracle==7.3.0
+
+# For running flask in production
+uwsgi==2.0.18

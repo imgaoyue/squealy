@@ -16,7 +16,7 @@ authentication:
     requires_authentication: false
 query: |
     SELECT month, sales from (
-        SELECT 'jan' as month, 6666 as sales UNION ALL
+        SELECT 'jan' as month, 6543 as sales UNION ALL
         SELECT 'feb' as month, 4567 as sales UNION ALL
         SELECT 'mar' as month, 1907 as sales
     ) s

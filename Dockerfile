@@ -56,19 +56,13 @@ COPY squealy squealy
 # This makes our container a lot more secure
 USER gunicorn
 
-# Declare some default values
-# These can be overidden when the container is run
-ENV PORT 8000
-ENV NUM_WORKERS 4
-ENV LOG_LEVEL ERROR
-ENV DEBUG False
+# This is the location for oracle's instant client driver
+# Users must mount a volume at this path if they wish to connect to Oracle
+ENV LD_LIBRARY_PATH /code/drivers/instantclient_19_6/
 
-# Start gunicorn with the following configuration
-# - Number of workers and port can be overridden via environment variables
-# - All logs are to stdout / stderr
-# - Access log format is modified to include %(L)s - which is the request time in decimal seconds
-CMD gunicorn -b 0.0.0.0:$PORT --workers $NUM_WORKERS \
-    --name squealy \
-    --access-logfile '-' --error-logfile '-' --log-level $LOG_LEVEL \
-    --access-logformat '%(h)s %(l)s %(u)s %(t)s %(L)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"' \
-    squealy
+# Configurations inspired from https://www.caktusgroup.com/blog/2017/03/14/production-ready-dockerfile-your-python-django-app/
+ENV UWSGI_WSGI_FILE=squealy/wsgi.py
+ENV UWSGI_HTTP=:5000 UWSGI_MASTER=1 UWSGI_HTTP_AUTO_CHUNKED=1 UWSGI_HTTP_KEEPALIVE=1 UWSGI_LAZY_APPS=1 UWSGI_WSGI_ENV_BEHAVIOR=holy
+ENV UWSGI_WORKERS=2 UWSGI_THREADS=4
+
+CMD ["uwsgi"]

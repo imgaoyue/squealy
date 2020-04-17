@@ -1,0 +1,54 @@
+version: '3'
+services:
+  api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: squealy-api
+    ports:
+    - "5000:5000"
+    volumes: 
+    - "./squealy-home:/code/squealy-home"
+    - "./drivers/instantclient_19_6/:/code/drivers/instantclient_19_6/"
+    environment:
+      SQUEALY_BASE_DIR: "/code/squealy-home"
+      PG_PASSWORD: squealypg
+      MYSQL_PASSWORD: squealy1234
+      MSSQL_PASSWORD: "yourStrong(@!)Password"
+      ORACLE_PASSWORD: secret
+      LD_LIBRARY_PATH: "/code/drivers/instantclient_19_6/"
+  adventureworks-postgres:
+    image: squealy/adventureworks-postgres
+    environment:
+      POSTGRES_PASSWORD: squealypg
+  mysql-57:
+    image: mysql:5.7.29
+    environment: 
+      MYSQL_ROOT_PASSWORD: squealyRootPassword
+      MYSQL_DATABASE: squealy
+      MYSQL_USER: squealy
+      MYSQL_PASSWORD: squealy1234
+  mssql-2017:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment: 
+      ACCEPT_EULA: Y
+      SA_PASSWORD: "yourStrong(@!)Password"
+  oracle-xe-11g:
+    image: oracleinanutshell/oracle-xe-11g:latest
+
+  tests:
+    image: python:3.7.7-slim
+    environment: 
+      BASE_URL: http://api:5000/
+      PRIVATE_KEY: /code/squealy-home/private.pem
+    volumes: 
+      - "./requirements.test.txt:/code/requirements.test.txt"
+      - "./tests:/code/tests"
+      - "./squealy-home/private.pem:/code/squealy-home/private.pem"
+    depends_on: 
+      - api
+      - adventureworks-postgres
+      - mysql-57
+      - mssql-2017
+      - oracle-xe-11g
+    command: bash -c "pip install --no-cache-dir -r /code/requirements.test.txt && python -m unittest discover -s /code/tests -p *.py"

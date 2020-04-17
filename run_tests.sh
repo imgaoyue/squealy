@@ -1,1 +1,1 @@
-BASE_URL=http://localhost:5000 PRIVATE_KEY=./squealy-home/private.pem python -m unittest discover -s tests -p *.py
+docker-compose -f docker-compose.ci.yml up --abort-on-container-exit --exit-code-from tests

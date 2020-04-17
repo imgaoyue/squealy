@@ -62,7 +62,6 @@ class Chart:
         
         for authz in self.authorization:
             finalquery, bindparams = jinja.prepare_query(authz['query'], context, self.engine.param_style)
-            print(finalquery, bindparams)
             with self.engine.connect() as conn:
                 result = conn.execute(finalquery, bindparams)
                 if not result.first():

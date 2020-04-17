@@ -1,0 +1,1 @@
+from squealy import application

@@ -7,9 +7,6 @@ jinjasql==0.1.7
 # Arrow for better handling time and dates
 arrow==0.15.5
 
-# For running flask in production
-gunicorn==20.0.4
-
 # To export metrics to prometheus
 prometheus_client==0.7.1
 
