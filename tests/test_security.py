@@ -74,10 +74,12 @@ class SecurityTests(SquealyTest):
         sri = {"username": "sri"}
         ram = {"username": "ram"}
 
+        # Sri can access north region, but not east
         self.get_chart("authorization-check-via-sql-query", user=sri, params={"region": 'north'})
         with self.assertRaisesRegex(HTTPError, "403 Client Error"):
             self.get_chart("authorization-check-via-sql-query", user=sri, params={"region": 'east'})
 
+        # Ram can access west region, but not south
         self.get_chart("authorization-check-via-sql-query", user=ram, params={"region": 'west'})
         with self.assertRaisesRegex(HTTPError, "403 Client Error"):
             self.get_chart("authorization-check-via-sql-query", user=ram, params={"region": 'south'})

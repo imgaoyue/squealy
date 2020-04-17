@@ -10,7 +10,7 @@ services:
     image: squealy/adventureworks-postgres
     environment:
       POSTGRES_PASSWORD: squealypg
-  mysq-57:
+  mysql-57:
     image: mysql:5.7.29
     environment: 
       MYSQL_ROOT_PASSWORD: squealyRootPassword

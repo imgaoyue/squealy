@@ -2,7 +2,7 @@
   password: 
   url: "postgresql://postgres:{{env.PG_PASSWORD}}@adventureworks-postgres"
 - id: mysqldb
-  url: "mysql://squealy:{{env.MYSQL_PASSWORD}}@squealy-mysql/squealy"
+  url: "mysql://squealy:{{env.MYSQL_PASSWORD}}@mysql-57/squealy"
 - id: sqlitedb
   url: "sqlite:////tmp/sqlite.db"
 - id: mssqldb
