@@ -1,0 +1,11 @@
+name: Integration Tests
+on: [push]
+
+jobs:
+  build:
+    name: docker-compose-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download code and run docker-compose
+        uses: actions/checkout@v2
+        run: docker-compose -f docker-compose.ci.yml up --abort-on-container-exit --exit-code-from tests
