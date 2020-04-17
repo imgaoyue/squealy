@@ -13,35 +13,39 @@ ENV PYTHONUNBUFFERED 1
 # Workdir creates the directory if it doesn't exist
 WORKDIR /code
 
-# These are the libraries needed at run time
-# - libpq5 is the postgres native driver, this is needed later when we install psycopg2
-# - default-libmysqlclient-dev is needed for MySQL. There may be a lighter package, but we haven't found it out
-# - libaio1 is needed for oracle driver
-RUN set -ex \
-    && apt-get update && apt-get install -y --no-install-recommends libpq5 default-libmysqlclient-dev libaio1 \
-    && rm -rf /var/lib/apt/lists/*
-
 # Now install all pip libraries that require compiling native code
 # Compiling native code usually requires several build-time packages
 # So we install build time package, then install pip libraries, and then uninstall build time packages
 
 COPY requirements.native.txt .
 
+# RUN_DEPS are needed at run time, BUILD_DEPS are only needed at build time 
+# and can be uninstalled immediately after installing pip dependencies
+#
+# - libpq5 is the postgres native driver, this is needed later when we install psycopg2
+# - default-libmysqlclient-dev is needed for MySQL. There may be a lighter package, but we haven't found it out
+# - libaio1 is needed for oracle driver
+
 RUN set -ex \
+    && RUN_DEPS=" \
+    libpq5 \
+    default-libmysqlclient-dev \
+    libaio1 \
+    " \
     && BUILD_DEPS=" \
         build-essential \
         libpcre3-dev \
         libpq-dev \
         python3-dev \
     " \
-    && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS \
+    && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS $RUN_DEPS \
     && pip install --no-cache-dir -r requirements.native.txt \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $BUILD_DEPS \
     && rm -rf /var/lib/apt/lists/*
 
-
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY dev-docker-entrypoint.sh .
 
