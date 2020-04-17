@@ -1,1 +1,1 @@
-docker-compose -f docker-compose.ci.yml up --abort-on-container-exit --exit-code-from tests
+docker-compose -f docker-compose.ci.yml up --build --abort-on-container-exit --exit-code-from tests

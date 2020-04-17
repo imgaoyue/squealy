@@ -1,3 +1,5 @@
+# Host names and passwords must be in sync with docker-compose.ci.yml
+
 - id: postgresdb
   password: 
   url: "postgresql://postgres:{{env.PG_PASSWORD}}@adventureworks-postgres"
@@ -6,6 +8,6 @@
 - id: sqlitedb
   url: "sqlite:////tmp/sqlite.db"
 - id: mssqldb
-  url: "mssql+pymssql://sa:{{ env.MSSQL_PASSWORD }}@squealy-mssql-2017:1433"
+  url: "mssql+pymssql://sa:{{ env.MSSQL_PASSWORD }}@mssql-2017:1433"
 - id: oracledb
-  url: "oracle+cx_oracle://system:{{ env.ORACLE_PASSWORD }}@squealy-oracle-xe-11g:1521/xe"
+  url: "oracle+cx_oracle://system:{{ env.ORACLE_PASSWORD }}@oracle-xe-11g:1521/xe"

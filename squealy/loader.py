@@ -94,8 +94,11 @@ def _load_engine(rawobj):
     return engine
 
 def _identify_param_style(engine):
-    if 'sqlite' in type(engine.dialect).__module__:
+    dialect_str = str(type(engine.dialect).__module__).lower()
+    if 'sqlite' in dialect_str:
         engine.param_style = 'qmark'
+    elif 'oracle' in dialect_str:
+        engine.param_style = 'named'
     else:
         engine.param_style = 'format'
 

@@ -23,13 +23,26 @@ class JinjaWrapper:
     """
     def __init__(self):
         self.qmark_jinja = configure_jinjasql('qmark')
+        self.named_jinja = configure_jinjasql('named')
         self.default_jinja = configure_jinjasql('format')
     
     def prepare_query(self, query, context, param_style):
-        jinja = self.qmark_jinja if param_style == 'qmark' else self.default_jinja
+        if param_style == 'qmark':
+            jinja = self.qmark_jinja
+        elif param_style == 'named': 
+            jinja = self.named_jinja
+        else:
+            jinja = self.default_jinja
+        
         final_query, bind_params = jinja.prepare_query(query, context)
+
         if param_style in ('qmark', 'format', 'numeric'):
             bind_params = list(bind_params)
+        elif param_style in ('named', ):
+            bind_params = dict(bind_params)
+        else:
+            final_query, bind_params = self.default_jinja.prepare_query(query, context)
+        
         return (final_query, bind_params)
 
 def configure_jinjasql(param_style):

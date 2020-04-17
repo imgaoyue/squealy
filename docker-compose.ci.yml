@@ -15,12 +15,14 @@ services:
       PG_PASSWORD: squealypg
       MYSQL_PASSWORD: squealy1234
       MSSQL_PASSWORD: "yourStrong(@!)Password"
-      ORACLE_PASSWORD: secret
+      ORACLE_PASSWORD: "oracle"
       LD_LIBRARY_PATH: "/code/drivers/instantclient_19_6/"
+
   adventureworks-postgres:
     image: squealy/adventureworks-postgres
     environment:
       POSTGRES_PASSWORD: squealypg
+
   mysql-57:
     image: mysql:5.7.29
     environment: 
@@ -28,11 +30,13 @@ services:
       MYSQL_DATABASE: squealy
       MYSQL_USER: squealy
       MYSQL_PASSWORD: squealy1234
+
   mssql-2017:
     image: mcr.microsoft.com/mssql/server:2017-latest
     environment: 
       ACCEPT_EULA: Y
       SA_PASSWORD: "yourStrong(@!)Password"
+
   oracle-xe-11g:
     image: oracleinanutshell/oracle-xe-11g:latest
 
@@ -51,4 +55,4 @@ services:
       - mysql-57
       - mssql-2017
       - oracle-xe-11g
-    command: bash -c "pip install --no-cache-dir -r /code/requirements.test.txt && python -m unittest discover -s /code/tests -p *.py"
+    command: bash -c "pip install --no-cache-dir -r /code/requirements.test.txt && sleep 30s && python -m unittest discover -s /code/ -p *.py"

@@ -11,7 +11,7 @@ query: |
 
 kind: chart
 id: allow-anonymous
-datasource: mysqldb
+datasource: sqlitedb
 authentication:
     requires_authentication: false
 query: |
@@ -68,26 +68,59 @@ presentation:
     formatter: GoogleChart
     chart_type: ColumnChart
     
+---
 
+kind: chart
+id: mysql-testing
+datasource: mysqldb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s where s.month = {{params.month}}
 
 ---
 
 kind: chart
-id: monthly-sales-oracle
-datasource: oracledb
+id: postgres-testing
+datasource: postgresdb
+authentication:
+    requires_authentication: false
 query: |
-    SELECT month, region, sales from (
-        SELECT 'jan' as month, 'north' as region, 1828 as sales from dual UNION ALL
-        SELECT 'feb' as month, 'north' as region, 1648 as sales from dual UNION ALL
-        SELECT 'mar' as month, 'north' as region, 1907 as sales from dual UNION ALL
-        SELECT 'jan' as month, 'south' as region, 1809 as sales from dual UNION ALL
-        SELECT 'feb' as month, 'south' as region, 1900 as sales from dual UNION ALL
-        SELECT 'mar' as month, 'south' as region, 1300 as sales from dual UNION ALL
-        SELECT 'jan' as month, 'west' as region, 1200 as sales from dual UNION ALL
-        SELECT 'feb' as month, 'west' as region, 1000 as sales from dual UNION ALL
-        SELECT 'mar' as month, 'west' as region, 2000 as sales from dual UNION ALL
-        SELECT 'jan' as month, 'east' as region, 2100 as sales from dual UNION ALL
-        SELECT 'feb' as month, 'east' as region, 1600 as sales from dual UNION ALL
-        SELECT 'mar' as month, 'east' as region, 1500 as sales from dual
-    ) s {% if params.region %} where s.region = {{params.region}} {% endif %}
-    
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s where s.month = {{params.month}}
+
+---
+
+kind: chart
+id: mssql-testing
+datasource: mssqldb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s where s.month = {{params.month}}
+
+---
+
+kind: chart
+id: oracle-testing
+datasource: oracledb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales FROM dual UNION ALL
+        SELECT 'feb' as month, 4567 as sales FROM dual UNION ALL
+        SELECT 'mar' as month, 1907 as sales FROM dual
+    ) s where s.month = {{params.month}}
+        
