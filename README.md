@@ -1,3 +1,10 @@
+This software is Work In Progress, do not depend on it just yet.
+
+
+---
+
+
+
 TODOs:
 1. Documentation
 1. Transformations are explicit rather than implicit
