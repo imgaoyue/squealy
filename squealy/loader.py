@@ -98,7 +98,7 @@ def _identify_param_style(engine):
     if 'sqlite' in dialect_str:
         engine.param_style = 'qmark'
     elif 'oracle' in dialect_str:
-        engine.param_style = 'named'
+        engine.param_style = 'numeric'
     else:
         engine.param_style = 'format'
 

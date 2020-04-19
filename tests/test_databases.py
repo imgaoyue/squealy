@@ -16,7 +16,6 @@ class SecurityTests(SquealyTest):
         chart = self.get_chart("mssql-testing", params={"month": 'jan'})
         self.assertDictEqual(chart, {'columns': ['month', 'sales'], 'data': [['jan', 6543]]})
 
-    @unittest.skip("Oracle tests can't be run in CI")
     def test_oracle_connection(self):
         chart = self.get_chart("oracle-testing", params={"month": 'jan'})
         self.assertDictEqual(chart, {'columns': ['month', 'sales'], 'data': [['jan', 6543]]})

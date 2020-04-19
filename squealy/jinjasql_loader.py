@@ -23,14 +23,14 @@ class JinjaWrapper:
     """
     def __init__(self):
         self.qmark_jinja = configure_jinjasql('qmark')
-        self.named_jinja = configure_jinjasql('named')
+        self.numeric_jinja = configure_jinjasql('numeric')
         self.default_jinja = configure_jinjasql('format')
     
     def prepare_query(self, query, context, param_style):
         if param_style == 'qmark':
             jinja = self.qmark_jinja
-        elif param_style == 'named': 
-            jinja = self.named_jinja
+        elif param_style == 'numeric': 
+            jinja = self.numeric_jinja
         else:
             jinja = self.default_jinja
         
@@ -38,10 +38,10 @@ class JinjaWrapper:
 
         if param_style in ('qmark', 'format', 'numeric'):
             bind_params = list(bind_params)
-        elif param_style in ('named', ):
+        elif param_style in ('named', 'pyformat'):
             bind_params = dict(bind_params)
         else:
-            final_query, bind_params = self.default_jinja.prepare_query(query, context)
+            raise Exception("Invalid param_style", param_style)
         
         return (final_query, bind_params)
 
