@@ -9,6 +9,8 @@ services:
     - "5000:5000"
     volumes: 
     - "./squealy-home:/code/squealy-home"
+      # On github, oracle drivers are automatically downloaded to this location
+      # See .github/workflows/integration-tests.yml
     - "./drivers/instantclient_19_6/:/code/drivers/instantclient_19_6/"
     environment:
       SQUEALY_BASE_DIR: "/code/squealy-home"
