@@ -15,7 +15,7 @@ jobs:
           key: instantclient_19_6-cache-buster-0
 
       - name: Download Oracle Instantclient
-        if: steps.cache-oracle-server.outputs.cache-hit != 'true'
+        if: steps.cache-oracle-driver.outputs.cache-hit != 'true'
         run: curl -o instantclient.zip https://download.oracle.com/otn_software/linux/instantclient/19600/instantclient-basic-linux.x64-19.6.0.0.0dbru.zip && unzip instantclient.zip -d drivers
 
       - name: Run Integration Tests using docker-compose
