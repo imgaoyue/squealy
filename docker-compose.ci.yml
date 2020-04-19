@@ -7,12 +7,14 @@ services:
     image: squealy-api
     ports:
     - "5000:5000"
+    - "8443:8443"
     volumes: 
     - "./squealy-home:/code/squealy-home"
       # On github, oracle drivers are automatically downloaded to this location
       # See .github/workflows/integration-tests.yml
     - "./drivers/instantclient_19_6/:/code/drivers/instantclient_19_6/"
     environment:
+      UWSGI_HTTPS: "0.0.0.0:8443,/code/squealy-home/squealy.crt,/code/squealy-home/squealy.key"
       SQUEALY_BASE_DIR: "/code/squealy-home"
       PG_PASSWORD: squealypg
       MYSQL_PASSWORD: squealy1234
@@ -46,6 +48,7 @@ services:
     image: python:3.7.7-slim
     environment: 
       BASE_URL: http://api:5000/
+      BASE_URL_HTTPS: https://api:8443/
       PRIVATE_KEY: /code/squealy-home/private.pem
     volumes: 
       - "./requirements.test.txt:/code/requirements.test.txt"

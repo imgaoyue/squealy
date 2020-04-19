@@ -49,4 +49,9 @@ class SecurityTests(SquealyTest):
         with self.assertRaisesRegex(HTTPError, "403 Client Error"):
             self.get_chart("authorization-check-via-sql-query", user=ram, params={"region": 'south'})
 
+    
+    def test_https(self):
+        url = self.chart_url("allow-anonymous", https=True)
+        r = requests.get(url, verify=False)
+        r.raise_for_status()
         

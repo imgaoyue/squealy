@@ -25,6 +25,8 @@ COPY requirements.native.txt .
 # - libpq5 is the postgres native driver, this is needed later when we install psycopg2
 # - default-libmysqlclient-dev is needed for MySQL. There may be a lighter package, but we haven't found it out
 # - libaio1 is needed for oracle driver
+# - build-essential and python3-dev is needed to compile MySQL
+# - libssl-dev is needed to enable https support in uwsgi
 
 RUN set -ex \
     && RUN_DEPS=" \
@@ -37,6 +39,7 @@ RUN set -ex \
         libpcre3-dev \
         libpq-dev \
         python3-dev \
+        libssl-dev \
     " \
     && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS $RUN_DEPS \
     && pip install --no-cache-dir -r requirements.native.txt \
