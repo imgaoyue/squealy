@@ -1,12 +1,14 @@
 from flask import request
-from werkzeug.exceptions import Unauthorized
-from .charts import ChartNotFoundException, Chart
+from werkzeug.exceptions import HTTPException, Unauthorized
+from .charts import Chart
 from functools import wraps
 import jwt
 
 from squealy import app, charts
 
-
+class ChartNotFoundException(HTTPException):
+    code = 404
+    
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):

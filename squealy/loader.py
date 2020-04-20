@@ -6,6 +6,10 @@ from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 import os
 from .charts import Chart
 
+# This is to ensure parameters.py is loaded
+# We load the specific Parameter class dynamically, see get_class
+from .parameters import Parameter
+
 def load_config():
     base_dir = os.environ.get("SQUEALY_BASE_DIR", "/squealy/")
     jinja_env = Environment(loader=FileSystemLoader(base_dir))
@@ -133,7 +137,7 @@ def _parse_parameter_definitions(raw_params):
         kind = raw_param['kind']
         del raw_param['kind']
         if kind in ('String', 'Number', 'Date', 'DateTime'):
-            kls = get_class(f'squealy.charts.{kind}')
+            kls = get_class(f'squealy.parameters.{kind}')
             param = kls(**raw_param)
             params.append(param)
     return params
