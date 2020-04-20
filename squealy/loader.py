@@ -108,6 +108,8 @@ def _load_chart(raw_chart, config, engine):
     name = raw_chart.get('name', None)
     query = raw_chart.get('query', None)
     authentication = raw_chart.get('authentication', {"requires_authentication": True})
+    raw_params = raw_chart.get('parameters', [])
+    param_defns = _parse_parameter_definitions(raw_params)
     requires_authentication = authentication["requires_authentication"]
     
     authorization = raw_chart.get('authorization', [])
@@ -122,8 +124,28 @@ def _load_chart(raw_chart, config, engine):
     
     return Chart(id_, query, engine, slug=slug, name=name, config=config, 
         requires_authentication=requires_authentication,
-        authorization=authorization)
+        authorization=authorization, param_defns=param_defns)
 
+
+def _parse_parameter_definitions(raw_params):
+    params = []
+    for raw_param in raw_params:
+        kind = raw_param['kind']
+        del raw_param['kind']
+        if kind in ('String', 'Number', 'Date', 'DateTime'):
+            kls = get_class(f'squealy.charts.{kind}')
+            param = kls(**raw_param)
+            params.append(param)
+    return params
+
+# Copied verbatim from https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname
+def get_class( kls ):
+    parts = kls.split('.')
+    module = ".".join(parts[:-1])
+    m = __import__( module )
+    for comp in parts[1:]:
+        m = getattr(m, comp)            
+    return m
 
 def _get_first_file(*files):
     for f in files:

@@ -10,7 +10,8 @@ jinja = JinjaWrapper()
 class Chart:
     def __init__(self, id_, query, engine, slug=None, name=None, config = None,
                     transformations=None, formatter=None, options=None,
-                    requires_authentication=True, authorization=None):
+                    requires_authentication=True, authorization=None,
+                    param_defns=None):
         # A unique id for this chart
         self.id_ = id_
         
@@ -29,6 +30,7 @@ class Chart:
         self.transformations = transformations or []
         self.formatter = formatter if formatter else SimpleFormatter()
         self.options = options or {}
+        self.param_defns = param_defns or []
         
     def process(self, user, params):        
         context = {
@@ -39,7 +41,8 @@ class Chart:
 
         self._authenticate(user)
         self._authorize(context)
-        
+        params = self._normalize_parameters(params)
+
         finalquery, bindparams = jinja.prepare_query(self.query, context, self.engine.param_style)
         with self.engine.connect() as conn:
             result = conn.execute(finalquery, bindparams)
@@ -66,7 +69,16 @@ class Chart:
                 result = conn.execute(finalquery, bindparams)
                 if not result.first():
                     raise Forbidden(authz['id'])
+    
+    def _normalize_parameters(self, params):
+        for param_defn in self.param_defns:
+            name = param_defn.name
+            raw_value = params.get(name, None)
+            processed_value = param_defn.to_internal(raw_value)
+            params[name] = processed_value
 
+        return params
+    
 
 class UnauthorizedException(HTTPException):
     code = 401
@@ -94,13 +106,24 @@ class Parameter():
         return value
 
 class String(Parameter):
-    def __init__(self, name, description=None, default_value=None, valid_values=None, **kwargs):
+    def __init__(self, name, description=None, mandatory=False, default_value=None, valid_values=None, **kwargs):
         self.default_value = default_value
         self.valid_values = valid_values
         self.name = name
         self.description = description if description else ""
 
     def to_internal(self, value):
+        if not value and self.default_value:
+            value = self.default_value
+        if not value:
+            if mandatory:
+                raise RequiredParameterMissingException(name)
+            else:
+                return None
+        
+        if not self.is_valid(value):
+            raise HTTPException(code=400)
+
         if isinstance(value, str):
             return value
         else:
@@ -113,9 +136,34 @@ class String(Parameter):
             return True
         return False
 
+class Number(Parameter):
+    def __init__(self, name, description=None, mandatory=False, default_value=None, valid_values=None, **kwargs):
+        self.default_value = default_value
+        self.valid_values = valid_values
+        self.name = name
+        self.description = description if description else ""
+
+    def to_internal(self, value):
+        if not value and self.default_value:
+            value = self.default_value
+        if not value:
+            if mandatory:
+                raise RequiredParameterMissingException(name)
+            else:
+                return None
+        if isinstance(value, (int, float)):
+            return value
+        try:
+            if value.isdigit():
+                return int(value)
+            else :
+                return float(value)
+        except ValueError:
+            raise NumberParseException("Cannot parse to int or float"+ value)
+
 
 class Date(Parameter):
-    def __init__(self, name, description=None, default_value=None, format=None, **kwargs):
+    def __init__(self, name, description=None, mandatory=False, default_value=None, format=None, **kwargs):
         self.default_value = default_value
         self.format = format
         self.name = name
@@ -155,7 +203,7 @@ class Date(Parameter):
 
 
 class Datetime(Parameter):
-    def __init__(self, name, description=None, default_value=None, format=None, **kwargs):
+    def __init__(self, name, description=None, mandatory=False, default_value=None, format=None, **kwargs):
         self.datetime_macros = {"today": self.now, "now": self.now}
         self.default_value = default_value
         self.format = format
@@ -188,19 +236,3 @@ class Datetime(Parameter):
         except ValueError as err:
                 raise DateTimeParseException(err[0]+" Recieved Value - " + value)
 
-
-class Number(Parameter):
-    def __init__(self, name, description=None, default_value=None, valid_values=None, **kwargs):
-        self.default_value = default_value
-        self.valid_values = valid_values
-        self.name = name
-        self.description = description if description else ""
-
-    def to_internal(self, value):
-        try:
-            if value.isdigit():
-                return int(value)
-            else :
-                return float(value)
-        except ValueError:
-            raise NumberParseException("Cannot parse to int or float"+ value)

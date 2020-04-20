@@ -1,4 +1,29 @@
 kind: chart
+id: typed-parameters
+datasource: sqlitedb
+authentication:
+    requires_authentication: false
+parameters:
+    - name: month
+      kind: String
+      default_value: 'jan'
+      valid_values: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    - name: min_sales
+      kind: Number
+      default_value: 6500
+    - name: max_sales
+      kind: Number
+      default_value: 6600
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s WHERE s.month = {{params.month}} and s.sales > {{params.min_sales}} and s.sales < {{params.max_sales}}
+
+---
+
+kind: chart
 id: default-security
 datasource: sqlitedb
 query: |

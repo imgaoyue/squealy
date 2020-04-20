@@ -36,5 +36,5 @@ def render_chart(chart_id):
     if not chart_id in charts:
         raise ChartNotFoundException(chart_id)
     chart = charts[chart_id]
-    params = request.args
+    params = request.args.to_dict()
     return chart.process(request.user, params)
