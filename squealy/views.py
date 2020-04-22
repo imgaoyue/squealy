@@ -8,7 +8,7 @@ from squealy import app, charts
 
 class ChartNotFoundException(HTTPException):
     code = 404
-    
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -40,3 +40,11 @@ def render_chart(chart_id):
     chart = charts[chart_id]
     params = request.args.to_dict()
     return chart.process(request.user, params)
+
+@app.route('/_logs')
+def view_logs():
+    from squealy import dev_logs
+    from logging import Formatter
+    formatter = Formatter()
+    logs = [formatter.format(l) for l in dev_logs]
+    return {"logs": logs}

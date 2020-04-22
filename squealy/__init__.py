@@ -1,14 +1,44 @@
+from logging.config import dictConfig
+import logging 
+import os
+
+dictConfig({'version': 1,
+    'formatters': {
+        'default': {
+            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+        }
+    },
+    'handlers': {
+        'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        }
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
+
+if os.environ.get('FLASK_ENV', None) == 'development':
+    # Instead of memory handler, switch to sqlite handler
+    # See https://gist.github.com/giumas/994e48d3c1cff45fbe93
+
+    _memory_handler = logging.handlers.BufferingHandler(2048)
+    logging.getLogger('squealy').addHandler(_memory_handler)
+    dev_logs = _memory_handler.buffer
+else:
+    dev_logs = []
+
 # We load the configuration, charts, public key etc. BEFORE we load flask
 # This way, if there is a configuration issue, we fail-fast. 
-
-# Load the configuration first, and then load charts
 from .loader import load_config, load_charts, load_jwt_public_key
 _config = load_config()
 charts = load_charts(_config)
 
 # This public key is used to verify JWT tokens
 load_jwt_public_key(_config)
-
 
 # Next, load flask with the configuration we just loaded
 from flask import Flask

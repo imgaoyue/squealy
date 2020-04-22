@@ -7,10 +7,8 @@ This software is Work In Progress, do not depend on it just yet.
 TODOs:
 1. Documentation
 1. Transformations are explicit rather than implicit
-1. Expose parameters in charts, these are optional and make the API type safe 
 1. Parameterize chart type and formatter
 1. Add support for athena and google spreadsheets
-1. Add support for TLS - wsgi supports it
 1. Generate swagger documentation
 1. Add a description column to the chart yaml file
 1. Make URLs declarative - don't prepend /charts
@@ -32,7 +30,8 @@ DONE
 1. Make JWT tokens optional - i.e. some charts can be public - DONE
 1. Switch to uwsgi - because gunicorn is not safe without reverse proxy
 1. Integration Tests running via github actions
-
+1. Expose parameters in charts, these are optional and make the API type safe 
+1. Add support for TLS - wsgi supports it
 
 Generating Public and Private Key Pair
 --------------------------------------

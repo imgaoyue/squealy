@@ -1,3 +1,4 @@
+import logging
 import arrow
 import datetime
 from werkzeug.exceptions import Unauthorized, Forbidden
@@ -6,7 +7,7 @@ from .formatters import SimpleFormatter
 from .table import Table
 
 jinja = JinjaWrapper()
-
+logger= logging.getLogger( __name__ )
 class Chart:
     def __init__(self, id_, query, engine, slug=None, name=None, config = None,
             transformations=None, formatter=None, options=None,
@@ -32,12 +33,14 @@ class Chart:
         self.options = options or {}
         self.param_defns = param_defns or []
         
-    def process(self, user, params):        
+    def process(self, user, params):
         context = {
             "config": self.config,
             "user": user,
             "params": params
         }
+        logger.debug(context)
+        logger.info("Processing Chart Request for user %s", user)
 
         self._authenticate(user)
         self._authorize(context)
