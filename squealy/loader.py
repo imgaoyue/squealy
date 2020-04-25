@@ -4,10 +4,11 @@ from collections import defaultdict
 from sqlalchemy import create_engine
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 import os
-from .charts import Chart
+from .resources import Resource
 
-# This is to ensure parameters.py is loaded
-# We load the specific Parameter class dynamically, see get_class
+# We import Parameter statically for the side-effect
+# of loading parameters.py. Parameter is unused, because
+# we load the specific Parameter subclass dynamically
 from .parameters import Parameter
 
 def load_config():
@@ -38,13 +39,13 @@ def load_jwt_public_key(config):
         raise Exception(f'Public key does not start with -----BEGIN PUBLIC KEY-----')
     config['__PUBLIC_KEY__'] = public_key
 
-def load_charts(config):
+def load_resources(config):
     base_dir = config['SQUEALY_BASE_DIR']
     # Yaml files can have jinja templates embedded
     jinja_env = Environment(loader=FileSystemLoader(base_dir))
     engines = _load_datasources(jinja_env, config)
 
-    charts = {}
+    resources = {}
 
     # Now load remaining yaml files
     # This time, the config object will also be available
@@ -53,32 +54,32 @@ def load_charts(config):
         if ymlfile.name in ('config.yml', 'datasources.yml'):
             continue
     
-        # We load charts in two steps
+        # We load a resource in two steps
         # The first pass just loads them as a list of dict objects
-        # The second pass creates a Chart object
-        # This is because a Chart depends on a data source,
-        # and it is possible we load Chart before the data source is loaded
+        # The second pass creates a Resource object
+        # This is because a Resource depends on a data source,
+        # and it is possible we load Resource before the data source is loaded
         with open(ymlfile) as f:
             objects = yaml.safe_load_all(f)
             for rawobj in objects:
                 kind = rawobj['kind']
-                if kind == 'chart':
+                if kind == 'resource':
                     id_ = rawobj.get("id", None)
                     if not id_:
-                        raise Exception(f"File {ymlfile} has a Chart without an id field")
+                        raise Exception(f"File {ymlfile} has a Resource without an id field")
                     datasource = rawobj.get("datasource", None)
                     if not datasource:
-                        raise Exception(f"Chart {id_} in file {ymlfile} does not have a datasource field")
+                        raise Exception(f"Resource {id_} in file {ymlfile} does not have a datasource field")
                     engine = engines.get(datasource, None)
                     if not engine:
-                        raise Exception(f"Invalid datasource {datasource} in chart {id_}, file {ymlfile}")
-                    chart = _load_chart(rawobj, config, engine)
-                    charts[chart.slug] = chart
+                        raise Exception(f"Invalid datasource {datasource} in resource {id_}, file {ymlfile}")
+                    resource = _load_resource(rawobj, config, engine)
+                    resources[resource.slug] = resource
                 elif kind == 'datasource':
                     continue
                 else:
                     raise Exception(f"Unknown object of kind = {kind} in {ymlfile}")
-    return charts
+    return resources
 
 def _load_datasources(jinja_env, config):
     template = jinja_env.get_template("datasources.yml")
@@ -106,17 +107,17 @@ def _identify_param_style(engine):
     else:
         engine.param_style = 'format'
 
-def _load_chart(raw_chart, config, engine):
-    id_ = raw_chart['id']
-    slug = raw_chart.get('slug', None)
-    name = raw_chart.get('name', None)
-    query = raw_chart.get('query', None)
-    authentication = raw_chart.get('authentication', {"requires_authentication": True})
-    raw_params = raw_chart.get('parameters', [])
+def _load_resource(raw_resource, config, engine):
+    id_ = raw_resource['id']
+    slug = raw_resource.get('slug', None)
+    name = raw_resource.get('name', None)
+    query = raw_resource.get('query', None)
+    authentication = raw_resource.get('authentication', {"requires_authentication": True})
+    raw_params = raw_resource.get('parameters', [])
     param_defns = _parse_parameter_definitions(raw_params)
     requires_authentication = authentication["requires_authentication"]
     
-    authorization = raw_chart.get('authorization', [])
+    authorization = raw_resource.get('authorization', [])
     for authz in authorization:
         if 'id' not in authz:
             raise Exception("Authorization rule is missing id")
@@ -124,9 +125,9 @@ def _load_chart(raw_chart, config, engine):
             raise Exception("Authorization rule is missing query")
 
     if not query:
-        raise Exception(f"Missing query in chart {id_}, file {raw_chart['__sourcefile__']} ")
+        raise Exception(f"Missing query in resource {id_}, file {raw_resource['__sourcefile__']} ")
     
-    return Chart(id_, query, engine, slug=slug, name=name, config=config, 
+    return Resource(id_, query, engine, slug=slug, name=name, config=config, 
         requires_authentication=requires_authentication,
         authorization=authorization, param_defns=param_defns)
 

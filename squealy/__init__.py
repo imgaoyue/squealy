@@ -31,11 +31,11 @@ if os.environ.get('FLASK_ENV', None) == 'development':
 else:
     dev_logs = []
 
-# We load the configuration, charts, public key etc. BEFORE we load flask
+# We load the configuration, resources, public key etc. BEFORE we load flask
 # This way, if there is a configuration issue, we fail-fast. 
-from .loader import load_config, load_charts, load_jwt_public_key
+from .loader import load_config, load_resources, load_jwt_public_key
 _config = load_config()
-charts = load_charts(_config)
+resources = load_resources(_config)
 
 # This public key is used to verify JWT tokens
 load_jwt_public_key(_config)

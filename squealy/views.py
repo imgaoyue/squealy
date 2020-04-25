@@ -1,13 +1,10 @@
 from flask import request
-from werkzeug.exceptions import HTTPException, Unauthorized
-from .charts import Chart
+from werkzeug.exceptions import HTTPException, Unauthorized, NotFound
+from .resources import Resource
 from functools import wraps
 import jwt
 
-from squealy import app, charts
-
-class ChartNotFoundException(HTTPException):
-    code = 404
+from squealy import app, resources
 
 def login_required(f):
     @wraps(f)
@@ -32,14 +29,14 @@ def _extract_token(request):
     
     return token
 
-@app.route('/charts/<chart_id>')
+@app.route('/charts/<resource_id>')
 @login_required
-def render_chart(chart_id):
-    if not chart_id in charts:
-        raise ChartNotFoundException(chart_id)
-    chart = charts[chart_id]
+def process_resource(resource_id):
+    if not resource_id in resources:
+        raise NotFound()
+    resource = resources[resource_id]
     params = request.args.to_dict()
-    return chart.process(request.user, params)
+    return resource.process(request.user, params)
 
 @app.route('/_logs')
 def view_logs():

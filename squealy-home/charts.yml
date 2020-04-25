@@ -1,4 +1,4 @@
-kind: chart
+kind: resource
 id: typed-parameters
 datasource: sqlitedb
 authentication:
@@ -23,7 +23,7 @@ query: |
 
 ---
 
-kind: chart
+kind: resource
 id: default-security
 datasource: sqlitedb
 query: |
@@ -34,7 +34,7 @@ query: |
     ) s
 ---
 
-kind: chart
+kind: resource
 id: allow-anonymous
 datasource: sqlitedb
 authentication:
@@ -47,7 +47,7 @@ query: |
     ) s
 ---
 
-kind: chart
+kind: resource
 id: only-show-data-from-users-region
 datasource: sqlitedb
 authentication:
@@ -64,7 +64,7 @@ query: |
     ORDER BY month desc
 ---
     
-kind: chart
+kind: resource
 id: authorization-check-via-sql-query
 datasource: sqlitedb
 authentication:
@@ -95,7 +95,7 @@ presentation:
     
 ---
 
-kind: chart
+kind: resource
 id: mysql-testing
 datasource: mysqldb
 authentication:
@@ -109,7 +109,7 @@ query: |
 
 ---
 
-kind: chart
+kind: resource
 id: postgres-testing
 datasource: postgresdb
 authentication:
@@ -123,7 +123,7 @@ query: |
 
 ---
 
-kind: chart
+kind: resource
 id: mssql-testing
 datasource: mssqldb
 authentication:
@@ -137,7 +137,7 @@ query: |
 
 ---
 
-kind: chart
+kind: resource
 id: oracle-testing
 datasource: oracledb
 authentication:

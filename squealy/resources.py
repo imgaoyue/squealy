@@ -8,12 +8,12 @@ from .table import Table
 
 jinja = JinjaWrapper()
 logger= logging.getLogger( __name__ )
-class Chart:
+class Resource:
     def __init__(self, id_, query, engine, slug=None, name=None, config = None,
             transformations=None, formatter=None, options=None,
             requires_authentication=True, authorization=None,
             param_defns=None):
-        # A unique id for this chart
+        # A unique id for this resource
         self.id_ = id_
         
         # The query to execute
@@ -39,8 +39,6 @@ class Chart:
             "user": user,
             "params": params
         }
-        logger.debug(context)
-        logger.info("Processing Chart Request for user %s", user)
 
         self._authenticate(user)
         self._authorize(context)
@@ -56,7 +54,7 @@ class Chart:
                     row_list.append(col)
                 rows.append(row_list)
             table = Table(columns=result.keys(), data=rows)
-            return self.formatter.format(table, 'ColumnChart')
+            return self.formatter.format(table)
 
     def _authenticate(self, user):
         if self.requires_authentication and not user:
