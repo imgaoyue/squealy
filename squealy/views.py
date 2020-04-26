@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, current_app
 from werkzeug.exceptions import HTTPException, Unauthorized, NotFound
 from .resources import Resource
 from functools import wraps
@@ -12,7 +12,7 @@ def login_required(f):
         token = _extract_token(request)
         if token:
             try:
-                request.user = jwt.decode(token, app.config['__PUBLIC_KEY__'], algorithm='RS256')
+                request.user = jwt.decode(token, current_app.config['__PUBLIC_KEY__'], algorithm='RS256')
             except jwt.exceptions.InvalidTokenError as e:
                 request.user = None
         else:
@@ -29,7 +29,6 @@ def _extract_token(request):
     
     return token
 
-@app.route('/charts/<resource_id>')
 @login_required
 def process_resource(resource_id):
     if not resource_id in resources:
@@ -45,3 +44,9 @@ def view_logs():
     formatter = Formatter()
     logs = [formatter.format(l) for l in dev_logs]
     return {"logs": logs}
+
+# Dynamically register all Resources to the function process_resource
+for uuid, resource in resources.items():
+    path = resource.path
+    uuid = resource.uuid
+    app.add_url_rule(path, 'process_resource', process_resource, defaults={'resource_id': uuid})

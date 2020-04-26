@@ -1,5 +1,6 @@
 import logging
 import arrow
+import uuid
 import datetime
 from werkzeug.exceptions import Unauthorized, Forbidden
 from .jinjasql_loader import JinjaWrapper
@@ -9,21 +10,26 @@ from .table import Table
 jinja = JinjaWrapper()
 logger= logging.getLogger( __name__ )
 class Resource:
-    def __init__(self, id_, query, engine, slug=None, name=None, config = None,
-            transformations=None, formatter=None, options=None,
+    def __init__(self, path, query, engine, name=None, description=None,
+            config = None, transformations=None, formatter=None, options=None,
             requires_authentication=True, authorization=None,
             param_defns=None):
+        
         # A unique id for this resource
-        self.id_ = id_
+        # This will get regenerated everytime the server starts
+        # It is only used internally for routing, and is not exposed to the end user
+        self.uuid = uuid.uuid4()
+
+        # Relative url at which this resource will be served
+        self.path = path
         
         # The query to execute
         self.query = query
         
         # The database engine against which to execute the query
         self.engine = engine
-
-        self.slug = slug if slug else id_
-        self.name = name if name else id_
+        self.name = name if name else self.path.replace('/', ' ').strip()
+        self.description = description if description else self.name
         
         self.requires_authentication = requires_authentication
         self.authorization = authorization or []

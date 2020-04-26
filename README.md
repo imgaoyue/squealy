@@ -15,6 +15,7 @@ TODOs:
 1. Add a description column to the chart yaml file
 1. Make URLs declarative - don't prepend /charts
 1. Support CORS headers via config.yml
+1. Support caching headers in the API
 1. Export prometheus metrics - Basic is done, now need to expose business metrics
 1. Improve logging and error reporting from the point of view of chart developer
     - In development mode, logs are appended to a request scoped object, 

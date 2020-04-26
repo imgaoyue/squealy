@@ -1,5 +1,5 @@
 kind: resource
-id: typed-parameters
+path: /charts/typed-parameters
 datasource: sqlitedb
 authentication:
     requires_authentication: false
@@ -24,7 +24,7 @@ query: |
 ---
 
 kind: resource
-id: default-security
+path: /charts/default-security
 datasource: sqlitedb
 query: |
     SELECT month, sales from (
@@ -35,7 +35,7 @@ query: |
 ---
 
 kind: resource
-id: allow-anonymous
+path: /charts/allow-anonymous
 datasource: sqlitedb
 authentication:
     requires_authentication: false
@@ -48,7 +48,7 @@ query: |
 ---
 
 kind: resource
-id: only-show-data-from-users-region
+path: /charts/only-show-data-from-users-region
 datasource: sqlitedb
 authentication:
     requires_authentication: true
@@ -65,7 +65,7 @@ query: |
 ---
     
 kind: resource
-id: authorization-check-via-sql-query
+path: /charts/authorization-check-via-sql-query
 datasource: sqlitedb
 authentication:
     requires_authentication: true
@@ -96,7 +96,7 @@ presentation:
 ---
 
 kind: resource
-id: mysql-testing
+path: /charts/mysql-testing
 datasource: mysqldb
 authentication:
     requires_authentication: false
@@ -110,7 +110,7 @@ query: |
 ---
 
 kind: resource
-id: postgres-testing
+path: /charts/postgres-testing
 datasource: postgresdb
 authentication:
     requires_authentication: false
@@ -124,7 +124,7 @@ query: |
 ---
 
 kind: resource
-id: mssql-testing
+path: /charts/mssql-testing
 datasource: mssqldb
 authentication:
     requires_authentication: false
@@ -138,7 +138,7 @@ query: |
 ---
 
 kind: resource
-id: oracle-testing
+path: /charts/oracle-testing
 datasource: oracledb
 authentication:
     requires_authentication: false
@@ -148,4 +148,4 @@ query: |
         SELECT 'feb' as month, 4567 as sales FROM dual UNION ALL
         SELECT 'mar' as month, 1907 as sales FROM dual
     ) s where s.month = {{params.month}}
-        
+    

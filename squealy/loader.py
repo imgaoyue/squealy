@@ -64,17 +64,17 @@ def load_resources(config):
             for rawobj in objects:
                 kind = rawobj['kind']
                 if kind == 'resource':
-                    id_ = rawobj.get("id", None)
-                    if not id_:
-                        raise Exception(f"File {ymlfile} has a Resource without an id field")
+                    path = rawobj.get("path", None)
+                    if not path:
+                        raise Exception(f"File {ymlfile} has a Resource without a path")
                     datasource = rawobj.get("datasource", None)
                     if not datasource:
-                        raise Exception(f"Resource {id_} in file {ymlfile} does not have a datasource field")
+                        raise Exception(f"Resource {path} in file {ymlfile} does not have a datasource field")
                     engine = engines.get(datasource, None)
                     if not engine:
-                        raise Exception(f"Invalid datasource {datasource} in resource {id_}, file {ymlfile}")
+                        raise Exception(f"Invalid datasource {datasource} in resource {path}, file {ymlfile}")
                     resource = _load_resource(rawobj, config, engine)
-                    resources[resource.slug] = resource
+                    resources[resource.uuid] = resource
                 elif kind == 'datasource':
                     continue
                 else:
@@ -108,9 +108,9 @@ def _identify_param_style(engine):
         engine.param_style = 'format'
 
 def _load_resource(raw_resource, config, engine):
-    id_ = raw_resource['id']
-    slug = raw_resource.get('slug', None)
+    path = raw_resource['path']
     name = raw_resource.get('name', None)
+    description = raw_resource.get('description', None)
     query = raw_resource.get('query', None)
     authentication = raw_resource.get('authentication', {"requires_authentication": True})
     raw_params = raw_resource.get('parameters', [])
@@ -125,9 +125,9 @@ def _load_resource(raw_resource, config, engine):
             raise Exception("Authorization rule is missing query")
 
     if not query:
-        raise Exception(f"Missing query in resource {id_}, file {raw_resource['__sourcefile__']} ")
+        raise Exception(f"Missing query in resource {path}, file {raw_resource['__sourcefile__']} ")
     
-    return Resource(id_, query, engine, slug=slug, name=name, config=config, 
+    return Resource(path, query, engine, name=name, description=description, config=config, 
         requires_authentication=requires_authentication,
         authorization=authorization, param_defns=param_defns)
 
