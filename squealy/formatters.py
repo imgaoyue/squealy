@@ -1,6 +1,5 @@
 import decimal
 from werkzeug.exceptions import HTTPException
-from .table import Split
 from flask.json import JSONEncoder
 
 class InvalidChartDataException(HTTPException):
@@ -18,6 +17,21 @@ class SimpleFormatter(Formatter):
 class JsonFormatter(Formatter):
     def format(self, table):
         return {"data": table.as_dict()}
+
+class SeriesFormatter(Formatter):
+    def _transpose(self, table):
+        transposed = {}
+        for colnum, colname in enumerate(table.columns):
+            series = []
+            for row in table.data:
+                series.append(row[colnum])
+            transposed[colname] = series
+        return transposed
+
+    def format(self, table):
+        transposed = self._transpose(table)
+        return {"data": transposed}
+
 
 class GoogleChartsFormatter(Formatter):
     def _generate_chart_data(self, table, column_types):
