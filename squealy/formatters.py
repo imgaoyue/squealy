@@ -12,13 +12,12 @@ class Formatter:
 
 class SimpleFormatter(Formatter):
     def format(self, table):
-        data = {"columns": table.columns, "data": [r.values() for r in table.data]}
+        data = {"columns": table.columns, "data": table.data}
         return data
 
 class JsonFormatter(Formatter):
     def format(self, table):
-        data = [dict(r) for r in table.data]
-        return {"data": data}
+        return {"data": table.as_dict()}
 
 class GoogleChartsFormatter(Formatter):
     def _generate_chart_data(self, table, column_types):

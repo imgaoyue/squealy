@@ -5,7 +5,6 @@ This software is Work In Progress, do not depend on it just yet.
 
 TODOs:
 1. Documentation
-1. Transformations are explicit rather than implicit
 1. Add support for athena and google spreadsheets
 1. Generate swagger documentation
 1. Support CORS headers via config.yml
@@ -18,7 +17,7 @@ TODOs:
         - Add REQUEST_ID response header in all API calls
         - Provide a dev api which takes REQUEST_ID and provides request scoped logs
         - Store the request logs in memory in a circular buffer-
-1. Support pagination in APIs
+1. Support pagination in APIs?
 
 DONE
 ----
@@ -31,6 +30,8 @@ DONE
 1. Integration Tests running via github actions
 1. Expose parameters in charts, these are optional and make the API type safe 
 1. Add support for TLS - wsgi supports it
+1. Transformations are explicit rather than implicit
+
 
 Won't Fix
 ---------

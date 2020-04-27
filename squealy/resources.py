@@ -56,7 +56,7 @@ class Resource:
             cols = result.keys()
             rows = result.fetchall()
             
-        table = Table(columns=result.keys(), data=rows)
+        table = Table(columns=result.keys(), data=[r.values() for r in rows])
         return self.formatter.format(table)
 
     def _authenticate(self, user):
