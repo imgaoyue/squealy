@@ -6,6 +6,26 @@ import jwt
 
 from squealy import app, resources
 
+@app.after_request
+def enable_cors(response):
+    CORS_ALLOW_HEADERS = [
+        'accept',
+        'accept-encoding',
+        'authorization',
+        'content-type',
+        'dnt',
+        'origin',
+        'user-agent',
+        'x-csrftoken',
+        'x-requested-with',
+    ]
+    # TODO: Remove hardcoded origin, read from current_app.config
+    response.headers['Access-Control-Allow-Origin'] = "http://localhost:3000"
+    response.headers['Access-Control-Allow-Methods'] = "GET, OPTIONS"
+    response.headers['Access-Control-Allow-Headers'] = ",".join(CORS_ALLOW_HEADERS)
+
+    return response
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -49,4 +69,4 @@ def view_logs():
 for uuid, resource in resources.items():
     path = resource.path
     uuid = resource.uuid
-    app.add_url_rule(path, 'process_resource', process_resource, defaults={'resource_id': uuid})
+    app.add_url_rule(path, 'process_resource', process_resource, methods=["GET", "POST", "OPTIONS"], defaults={'resource_id': uuid})

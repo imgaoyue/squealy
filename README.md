@@ -5,6 +5,7 @@ This software is Work In Progress, do not depend on it just yet.
 
 TODOs:
 1. Documentation
+1. Add more tests
 1. Add support for athena and google spreadsheets
 1. Generate swagger documentation
 1. Support CORS headers via config.yml
@@ -35,7 +36,7 @@ DONE
 
 Won't Fix
 ---------
-1. Parameterize chart type and formatter -- PRESENTATION ONLY
+1. Parameterize chart type -- PRESENTATION ONLY
 1. Separate APIs and Charts. A chart inherits from an API, and adds on additional configuration
 
 Generating Public and Private Key Pair
