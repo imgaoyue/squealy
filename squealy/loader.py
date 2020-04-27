@@ -114,6 +114,7 @@ def _load_resource(raw_resource, config, engine):
     query = raw_resource.get('query', None)
     authentication = raw_resource.get('authentication', {"requires_authentication": True})
     raw_params = raw_resource.get('parameters', [])
+    formatter = _load_formatter(raw_resource.get('formatter', 'SimpleFormatter'))
     param_defns = _parse_parameter_definitions(raw_params)
     requires_authentication = authentication["requires_authentication"]
     
@@ -128,7 +129,7 @@ def _load_resource(raw_resource, config, engine):
         raise Exception(f"Missing query in resource {path}, file {raw_resource['__sourcefile__']} ")
     
     return Resource(path, query, engine, name=name, description=description, config=config, 
-        requires_authentication=requires_authentication,
+        requires_authentication=requires_authentication, formatter=formatter,
         authorization=authorization, param_defns=param_defns)
 
 
@@ -142,6 +143,12 @@ def _parse_parameter_definitions(raw_params):
             param = kls(**raw_param)
             params.append(param)
     return params
+
+def _load_formatter(raw_formatter):
+    if not '.' in raw_formatter:
+        raw_formatter = f"squealy.formatters.{raw_formatter}"
+    kls = get_class(raw_formatter)
+    return kls()
 
 # Copied verbatim from https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname
 def get_class( kls ):

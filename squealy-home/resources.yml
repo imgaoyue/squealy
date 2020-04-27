@@ -80,19 +80,7 @@ query: |
     SELECT month, sales from (
         SELECT 'jan' as month, 6543 as sales UNION ALL
         SELECT 'feb' as month, 4567 as sales
-    ) s
-transformations:
-    - kind: pivot
-      pivot_on: region
-      new_columns: all_distinct_values
-      new_columns: ['north', 'south']
-      metric_columns: ['sales']
-      include_others: true
-    - kind: transpose
-presentation:
-    formatter: GoogleChart
-    chart_type: ColumnChart
-    
+    ) s    
 ---
 
 kind: resource
