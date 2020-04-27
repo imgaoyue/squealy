@@ -53,14 +53,11 @@ class Resource:
         finalquery, bindparams = jinja.prepare_query(self.query, context, self.engine.param_style)
         with self.engine.connect() as conn:
             result = conn.execute(finalquery, bindparams)
-            rows = []
-            for db_row in result:
-                row_list = []
-                for col in db_row:
-                    row_list.append(col)
-                rows.append(row_list)
-            table = Table(columns=result.keys(), data=rows)
-            return self.formatter.format(table)
+            cols = result.keys()
+            rows = result.fetchall()
+            
+        table = Table(columns=result.keys(), data=rows)
+        return self.formatter.format(table)
 
     def _authenticate(self, user):
         if self.requires_authentication and not user:
@@ -85,5 +82,3 @@ class Resource:
             params[name] = processed_value
 
         return params
-    
-

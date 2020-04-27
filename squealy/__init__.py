@@ -39,7 +39,7 @@ resources = load_resources(_config)
 
 # This public key is used to verify JWT tokens
 load_jwt_public_key(_config)
-
+        
 # Next, load flask with the configuration we just loaded
 from flask import Flask
 from werkzeug.middleware.dispatcher import DispatcherMiddleware

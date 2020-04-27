@@ -1,4 +1,18 @@
 kind: resource
+path: /charts/testapi
+datasource: sqlitedb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s
+formatter: GoogleChartsFormatter
+---
+
+kind: resource
 path: /charts/typed-parameters
 datasource: sqlitedb
 authentication:
@@ -45,6 +59,7 @@ query: |
         SELECT 'feb' as month, 4567 as sales UNION ALL
         SELECT 'mar' as month, 1907 as sales
     ) s
+formatter: SimpleFormatter
 ---
 
 kind: resource
