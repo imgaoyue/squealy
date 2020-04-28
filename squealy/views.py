@@ -1,28 +1,19 @@
 from flask import request, current_app
 from werkzeug.exceptions import HTTPException, Unauthorized, NotFound
-from .resources import Resource
 from functools import wraps
 import jwt
-
 from squealy import app, resources
+from .resources import Resource
+from .config import SquealyConfig
+
+config = SquealyConfig()
 
 @app.after_request
 def enable_cors(response):
-    CORS_ALLOW_HEADERS = [
-        'accept',
-        'accept-encoding',
-        'authorization',
-        'content-type',
-        'dnt',
-        'origin',
-        'user-agent',
-        'x-csrftoken',
-        'x-requested-with',
-    ]
-    # TODO: Remove hardcoded origin, read from current_app.config
-    response.headers['Access-Control-Allow-Origin'] = "http://localhost:3000"
-    response.headers['Access-Control-Allow-Methods'] = "GET, OPTIONS"
-    response.headers['Access-Control-Allow-Headers'] = ",".join(CORS_ALLOW_HEADERS)
+    if config.is_cors_enabled:
+        response.headers['Access-Control-Allow-Origin'] = config.cors_allowed_origins
+        response.headers['Access-Control-Allow-Methods'] = config.cors_allowed_methods
+        response.headers['Access-Control-Allow-Headers'] = config.cors_allowed_headers
 
     return response
 
@@ -32,7 +23,7 @@ def login_required(f):
         token = _extract_token(request)
         if token:
             try:
-                request.user = jwt.decode(token, current_app.config['__PUBLIC_KEY__'], algorithm='RS256')
+                request.user = jwt.decode(token, config.jwt_decode_key, config.jwt_decode_algorithm)
             except jwt.exceptions.InvalidTokenError as e:
                 request.user = None
         else:
