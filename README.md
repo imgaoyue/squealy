@@ -2,13 +2,14 @@
 
 Squealy lets you rapidly build readonly REST APIs by writing a SQL query. 
 
-We built Squealy primarily for embedded analytics - i.e. when you want dashboards and charts as part of an existing application. The application generates a JWT token for the logged-in user. The UI authenticates with Squealy with this JWT token, and uses the APIs to generate dashboards and charts.
-
-That said, Squealy is useful whenever you need to build readonly APIs and regular ORM gets in the way.
-
 Squealy processes SQL queries using [JinjaSQL](https://github.com/hashedin/jinjasql). Placeholders in the query template are automatically converted to bind parameters. Using this approach, you can create complex sql queries using the power of a templating language, and yet not have to worry about sql injection.
 
 Squealy is completely stateless and has no runtime dependencies. It runs in a stateless docker container, run sql queries against the databases you configure and returns the data as JSON objects.
+
+## Motivation
+We built Squealy primarily for embedded analytics - i.e. when you want dashboards and charts as part of an existing application. The application generates a JWT token for the logged-in user. The UI authenticates with Squealy with this JWT token, and uses the APIs to generate dashboards and charts.
+
+That said, Squealy is useful whenever you need to build readonly APIs and regular ORM gets in the way.
 
 ## Key Features
 
@@ -20,13 +21,13 @@ Squealy is completely stateless and has no runtime dependencies. It runs in a st
 1. Supports most relational databases - oracle, sql server, postgres, mysql, redshift, sqlite. Athena and snowflake are in progress. Elasticsearch is also in-progress
 
 
-## Walkthrough: Building an API for Aggregate Sales Data
+## Walkthrough: Building an API for Sales Data
 
-We will create an API that returns monthly sales aggregate data. The API takes an optional parameter `month` to filter data. Additionally, we want the API to restrict sales data to regions that the current user is allowed.
+Let's create an API that returns monthly sales aggregate data. The API should take an optional parameter `month` to filter records. Additionally, the API must return records from region(s) that the authenticated user has access to.
 
-To build such an API, we create a YAML file:
+This YAML file 
 
-```
+```yaml
 kind: resource
 path: /reports/monthly-sales
 datasource: salesdb
@@ -44,16 +45,14 @@ query: |
     {% if params.month %} and s.month = {{ params.month }} {% endif %}
     GROUP BY month
     ORDER BY month desc
-
-
 ```
 
-NOTE:
+Notice the following in the yaml file:
 
-1. The `params` object contains all the query parameters passed to the API at runtime.
-1. The `user` object represents the authenticated user calling the API. Squealy supports JWT tokens for authentication. The user object is created from the JWT token, and hence attributes inside the user object cannot be manipulated.
+* The `params` object contains all the query parameters passed to the API at runtime.
+* The `user` object represents the authenticated user calling the API. Squealy supports JWT tokens for authentication. The user object is created from the JWT token, and hence attributes inside the user object cannot be manipulated.
 
-Based on the above YAML file, Squealy creates a GET API at the path `/reports/monthly-sales`. This API:
+Based on this, Squealy creates an API at `/reports/monthly-sales`. This API:
 * Takes an optional paramter for `month`. 
 * Expects either an `Authorization` HTTP header or an `accessToken` query parameter
 * JWT token is provided for authentication, and the JWT token has a `region` attribute.
@@ -69,7 +68,7 @@ The response also depends on the `month` parameter:
 
 The response of the API will be something like this - 
 
-```
+```json
 {
   "data": [
     {
@@ -87,7 +86,7 @@ The response of the API will be something like this -
 
 But if you change the formatter to `SeriesFormatter`, the response format will be something more suitable to generating charts using javascript libraries.
 
-```
+```json
 {
   "data": {
     "month": ["jan", "feb"], 
