@@ -1,19 +1,45 @@
 # Build readonly JSON APIs by writing SQL Queries
 
-Squealy lets you rapidly build readonly REST APIs by writing a SQL query. 
+Squealy lets you rapidly build readonly REST APIs by writing an SQL query. 
 
-Squealy processes SQL queries using [JinjaSQL](https://github.com/hashedin/jinjasql). Placeholders in the query template are automatically converted to bind parameters. Using this approach, you can create complex sql queries using the power of a templating language, and yet not have to worry about sql injection.
+The SQL query can be a jinja template. It supports parameters, macros, filters and other things you expect from a template language. This makes complex, dynamic queries easy to maintain. 
 
-Squealy is completely stateless and has no runtime dependencies. It runs in a stateless docker container, run sql queries against the databases you configure and returns the data as JSON objects.
+Squealy is safe from sql injection, and it is perfectly safe to embed api parameters directly in the query. Internally, squealy will ensure all parameters are converted to bind parameters, so there is no chance of sql injection.
 
-## Motivation
-We built Squealy primarily for embedded analytics - i.e. when you want dashboards and charts as part of an existing application. The application generates a JWT token for the logged-in user. The UI authenticates with Squealy with this JWT token, and uses the APIs to generate dashboards and charts.
+Developers write an SQL query plus some meta-data in a yaml file. This yaml file is typically version controlled. At run time, Squealy uses these yaml files to serve the APIs.
 
-That said, Squealy is useful whenever you need to build readonly APIs and regular ORM gets in the way.
+The generated APIs support authentication via JWT, fine-grained authorization, row level security, parameters and custom validation. 
+
+Squealy is completely stateless and has no runtime dependencies. It runs in a stateless docker container, executes sql queries against the databases you configure, and returns the data as JSON. 
+
+
+## Why did we build Squealy?
+
+We built Squealy primarily for embedded analytics - i.e. when you want dashboards and charts as part of an existing application. A typical example is a line of business application for employees or vendors. These users would like to see a dashboard with some metrics / kpi as part of the application.
+
+Using a standard BI tool like tableau is very costly, because these tools typically charge per user. Also, the user experience is poor, because the user has to use two different applications.
+
+With Squealy, you would do the following - 
+1. Generate a JWT token in your application. Set user specific details such as username, role, department etc. in the JWT token
+1. Call Squealy generated APIs to fetch metrics & reports. Pass the JWT token for authentication
+1. Use any javascript library to generate the charts. Squealy can return data in a format compatible with many chart libraries such as google charts, chartjs.org, plotly, highcharts etc.
+
+
+## Quick Start
+
+**Pre-requisites**: You must have docker and docker-compose installed 
+
+1. Create a folder `squealy` and download docker-compose.yml in this folder
+1. Run `docker-compose up` and wait a few minutes for the server to start
+1. Open `squealy\squealy-home` folder in any text editor. Several example APIs are auto-generated in this folder.
+1. Open [http://localhost:3000/swagger](http://localhost:3000/swagger) in a browser
+
+Now you can edit the API definitions in your text editor, and then 
 
 ## Key Features
 
-1. Stateless and easy to deploy - it's just a single docker image with no other dependencies
+1. Stateless - the chart definitions are in yaml, and typically packaged into the docker image at build time.
+1. Not runtime dependencies - Squealy does not require any other database or cache or queue to function
 1. Supports complex queries, with templates, conditional logic, macros filters and more.
 1. Response can be formatted in different ways to support different charting libraries like chartjs, googlecharts, plotly and so on. 
 1. Automatically binds parameters, so this is safe from SQL injection
