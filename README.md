@@ -1,40 +1,33 @@
-# Build readonly JSON APIs by writing SQL Queries
+# Build Readonly JSON APIs from SQL Queries
 
-Squealy lets you rapidly build readonly REST APIs by writing an SQL query. 
+Squealy lets you build readonly REST APIs from template-based SQL or JSON queries. It supports most relational databases, and some NoSQL databases like ElasticSearch.
 
-The SQL query can be a jinja template. It supports parameters, macros, filters and other things you expect from a template language. This makes complex, dynamic queries easy to maintain. 
+The SQL query is written as jinja template. You can embed API parameters and user attributes directly into your query, and use conditional logic & looping constructs. In addtion, you can reuse code snipppets, create custom filters and define macros.
 
-Squealy is safe from sql injection, and it is perfectly safe to embed api parameters directly in the query. Internally, squealy will ensure all parameters are converted to bind parameters, so there is no chance of sql injection.
+Squealy is free from sql injection. It is safe to embed api parameters directly in the query. The templates are evaluated server side, not client side. Internally, squealy uses [JinjaSQL](https://github.com/hashedin/jinjasql) to bind the parameters.
 
-Developers write an SQL query plus some meta-data in a yaml file. This yaml file is typically version controlled. At run time, Squealy uses these yaml files to serve the APIs.
+Developers write the SQL query plus some meta-data in a yaml file. At run time, Squealy uses these yaml files to serve the APIs. Squealy has no other metadata other than these yaml files. If you version control the yaml files, you get a completely reproducible setup.
 
-The generated APIs support authentication via JWT, fine-grained authorization, row level security, parameters and custom validation. 
+The generated APIs support authentication via JWT, fine-grained authorization, row level security, API parameters and custom validation. The APIs setup appropriate CORS headers and Cache-Control headers as well.
 
-Squealy is completely stateless and has no runtime dependencies. It runs in a stateless docker container, executes sql queries against the databases you configure, and returns the data as JSON. 
+Squealy is completely stateless and has no runtime dependencies. It runs in a stateless docker container, executes sql queries against the database(s) you configure, and returns the data as JSON. 
 
-
-## Why did we build Squealy?
-
-We built Squealy primarily for embedded analytics - i.e. when you want dashboards and charts as part of an existing application. A typical example is a line of business application for employees or vendors. These users would like to see a dashboard with some metrics / kpi as part of the application.
-
-Using a standard BI tool like tableau is very costly, because these tools typically charge per user. Also, the user experience is poor, because the user has to use two different applications.
-
-With Squealy, you would do the following - 
-1. Generate a JWT token in your application. Set user specific details such as username, role, department etc. in the JWT token
-1. Call Squealy generated APIs to fetch metrics & reports. Pass the JWT token for authentication
-1. Use any javascript library to generate the charts. Squealy can return data in a format compatible with many chart libraries such as google charts, chartjs.org, plotly, highcharts etc.
-
+Squealy supports the following databases - 
+* Oracle
+* MySQL
+* Postgres
+* Microsoft SQL Server
+* AWS Redshift
+* SQLite
+* Snowflake (in-progress)
+* AWS Athena (in-progress)
+* ElasticSearch (in-progress)
 
 ## Quick Start
 
 **Pre-requisites**: You must have docker and docker-compose installed 
 
-1. Create a folder `squealy` and download docker-compose.yml in this folder
-1. Run `docker-compose up` and wait a few minutes for the server to start
-1. Open `squealy\squealy-home` folder in any text editor. Several example APIs are auto-generated in this folder.
-1. Open [http://localhost:3000/swagger](http://localhost:3000/swagger) in a browser
-
-Now you can edit the API definitions in your text editor, and then 
+TBD
 
 ## Key Features
 
@@ -45,6 +38,64 @@ Now you can edit the API definitions in your text editor, and then
 1. Automatically binds parameters, so this is safe from SQL injection
 1. Supports fine-grained security controls - including row level security and authorization rules
 1. Supports most relational databases - oracle, sql server, postgres, mysql, redshift, sqlite. Athena and snowflake are in progress. Elasticsearch is also in-progress
+
+## Why was Squealy built?
+
+We built Squealy primarily for embedded analytics - i.e. when you want dashboards and charts as part of an existing application. A typical example is a line of business application for employees or vendors. These users would like to see a dashboard with some metrics / kpi as part of the application.
+
+Using a standard BI tool like tableau is very costly, because these tools typically charge per user. Also, the user experience is poor, because the user has to use two different applications.
+
+With Squealy, you would do the following - 
+1. Generate a JWT token in your application. Set user specific details such as username, role, department etc. in the JWT token
+1. Call Squealy from the UI to fetch metrics & reports. The JWT token created above is used for authentication, so Squealy knows the logged in user, and therefore can enforce authorization rules.
+1. Use any javascript library to generate the charts. Squealy can return data in a format compatible with chart libraries such as google charts, chartjs.org, plotly, highcharts etc.
+
+Using such an approach, the application has complete control on the look and feel of the dashboard, giving a rich user experience.
+
+
+## FAQs
+### 1. How does this compare with something like Postgrest?
+[Postgrest](http://postgrest.org/en/v7.0.0/)/[pREST](https://postgres.rest/) automatically create CRUD APIs for tables & views. At the moment, Postgrest/pREST only works with Postgres. Squealy focusses only on read APIs, primarily meant for analytics, reporting and business intelligence use cases. 
+
+For security, [Postgrest relies on postgres roles](http://postgrest.org/en/v7.0.0/auth.html). To achieve row level security, you need to rely on Postres Row Level Security, which is tricky to setup correctly. In Squealy, you can directly embed user attributes and api parameters into the sql query. This makes it super simple to achieve fine grained security.
+
+In Postgres/pREST, the data is fetched from a single view or table. This is good for CRUD use cases. But when it comes to reporting or analytics, you typically want to do complex joins, window functions and aggregations - and that's when Squealy comes in handly.
+
+Summary: Use Postgrest/pREST if your use case is transactional, or you want CRUD operations. Use Squealy for read-only use cases, specially in analytics, reporting & business intelligence applications.
+
+### 2. Is Squealy safe from SQL Injection?
+Yes, it is.
+
+Suppose your template sql query is this 
+
+```sql
+SELECT month, sum(revenue) 
+FROM sales s
+where s.region = {{ user.region }}
+{% if params.month %} and s.month = {{ params.month }} {% endif %}
+```
+
+If `month` parameter is provided at runtime, Squealy will execute the following query 
+
+```sql
+SELECT month, sum(revenue) 
+FROM sales s
+where s.region = ?
+and s.month = ?
+```
+
+If `month` parameter is not provided, the following query will be execute:
+
+```sql
+SELECT month, sum(revenue) 
+FROM sales s
+where s.region = ?
+```
+
+In both cases, Squealy will bind the parameters and send them to the database. For more details on how this works, see [JinjaSQL](https://github.com/hashedin/jinjasql).
+
+### Can I use Squealy as a python library instead of a http based service?
+It should be possible to use Squealy as a library, though we don't support that use case at the moment. As of now, the recommended approach is to deploy Squealy as a separate container using the provided Docker image. 
 
 
 ## Walkthrough: Building an API for Sales Data
@@ -129,14 +180,6 @@ Squealy has several other features, such as -
 * Combining data from multiple queries in a single API call
 * Support for CORS headers and Cache-Control headers
 * Auto-generated Swagger/OpenAPI documentation
-
-
-## Getting Started
-
-Squealy is distributed as a docker image. There are two docker images.
-
-* `squealy/squalyapi` is meant for production use. It uses a uWSGI based server and has production-ready defaults.
-* `squaly/squealy-dev` is meant for local development. It supports live editing based workflows, and provides detailed logs to help during development.
 
 
 ## TODOs:
