@@ -50,15 +50,13 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY dev-docker-entrypoint.sh .
+COPY docker-entrypoint.sh .
 
-ENV FLASK_RUN_HOST "0.0.0.0"
 ENV SQUEALY_BASE_DIR "/code/squealy-home"
-ENV FLASK_APP "squealy"
-ENV FLASK_ENV "development"
 
 # Switch to gunicorn user
 # This is to ensure parity with production image
 USER gunicorn
 
-ENTRYPOINT [ "/code/dev-docker-entrypoint.sh" ]
+ENTRYPOINT [ "/code/docker-entrypoint.sh" ]
+CMD ["development"]

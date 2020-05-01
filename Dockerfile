@@ -50,6 +50,8 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY docker-entrypoint.sh .
+
 # Copy the remaining code
 # Avoid copying the current working directory, 
 # as that will have unnecessary files
@@ -68,4 +70,5 @@ ENV UWSGI_WSGI_FILE=squealy/wsgi.py
 ENV UWSGI_HTTP=:5000 UWSGI_MASTER=1 UWSGI_HTTP_AUTO_CHUNKED=1 UWSGI_HTTP_KEEPALIVE=1 UWSGI_LAZY_APPS=1 UWSGI_WSGI_ENV_BEHAVIOR=holy
 ENV UWSGI_WORKERS=2 UWSGI_THREADS=4
 
+ENTRYPOINT [ "/code/docker-entrypoint.sh" ]
 CMD ["uwsgi"]
