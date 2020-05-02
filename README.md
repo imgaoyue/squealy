@@ -39,7 +39,7 @@ TBD
 1. Supports fine-grained security controls - including row level security and authorization rules
 1. Supports most relational databases - oracle, sql server, postgres, mysql, redshift, sqlite. Athena and snowflake are in progress. Elasticsearch is also in-progress
 
-## Why was Squealy built?
+## Motivation for Squealy
 
 We built Squealy primarily for embedded analytics - i.e. when you want dashboards and charts as part of an existing application. A typical example is a line of business application for employees or vendors. These users would like to see a dashboard with some metrics / kpi as part of the application.
 
