@@ -33,12 +33,9 @@ else:
 
 # We load the configuration, resources, public key etc. BEFORE we load flask
 # This way, if there is a configuration issue, we fail-fast. 
-from .loader import load_config, load_resources, load_jwt_public_key
-_config = load_config()
-resources = load_resources(_config)
-
-# This public key is used to verify JWT tokens
-load_jwt_public_key(_config)
+from .loader import load_config, load_resources
+config = load_config()
+resources = load_resources(config)
         
 # Next, load flask with the configuration we just loaded
 from flask import Flask
@@ -47,8 +44,6 @@ from prometheus_client import make_wsgi_app
 
 # app is used by views.py to register routes
 app = Flask(__name__)
-app.secret_key = 'secret'
-app.config.update(_config)
 
 # Add prometheus wsgi middleware to route /metrics requests
 # application object is then used by wsgi / gunicorn to startup the application

@@ -11,36 +11,38 @@ from .resources import Resource
 # we load the specific Parameter subclass dynamically
 from .parameters import Parameter
 
+class ConfigException(Exception):
+    pass
+
 def load_config():
-    base_dir = os.environ.get("SQUEALY_BASE_DIR", "/squealy/")
+    base_dir = _resolve_squealy_base_dir()
+    raw_config = _load_config_yaml(base_dir)
+    config = SquealyConfig(base_dir, raw_config)
+    return config
+
+def _resolve_squealy_base_dir():
+    base_dir = os.environ.get("SQUEALY_BASE_DIR", None)
+    if not base_dir:
+        raise ConfigException("SQUEALY_BASE_DIR environment variable not set")
+    
+    if not os.path.isdir(base_dir):
+        raise ConfigException(f"Path {base_dir} defined in environment variable SQUEALY_BASE_DIR must be a directory")
+
+    return base_dir
+    
+def _load_config_yaml(base_dir):
     jinja_env = Environment(loader=FileSystemLoader(base_dir))
-    config = {"SQUEALY_BASE_DIR": base_dir}
     try:
         template = jinja_env.get_template("config.yml")
     except TemplateNotFound:
-        return config
+        return {}
 
     config_file = template.render({"env": os.environ})
-    loaded_config = yaml.safe_load(config_file)
-    if loaded_config:
-        config.update(loaded_config)
-    return config
-
-def load_jwt_public_key(config):
-    'Load JWT public key and store it in config.public_key'
-    base_dir = config['SQUEALY_BASE_DIR']
-    public_key_file = _get_first_file(config.get("PUBLIC_KEY_FILE"), os.path.join(base_dir, "public.pem"))
-    if not public_key_file:
-        raise Exception("Public key not found. This is needed to verify JWT tokens")
-    with open(public_key_file) as f:
-        public_key = f.read()
+    return yaml.safe_load(config_file)
     
-    if not public_key.startswith("-----BEGIN PUBLIC KEY-----"):
-        raise Exception(f'Public key does not start with -----BEGIN PUBLIC KEY-----')
-    config['__PUBLIC_KEY__'] = public_key
 
 def load_resources(config):
-    base_dir = config['SQUEALY_BASE_DIR']
+    base_dir = config.base_dir
     # Yaml files can have jinja templates embedded
     jinja_env = Environment(loader=FileSystemLoader(base_dir))
     engines = _load_datasources(jinja_env, config)
@@ -166,3 +168,107 @@ def _get_first_file(*files):
         if os.path.exists(f):
             return f
     return None
+
+
+class SquealyConfig:
+    def __init__(self, base_dir, config):
+        self.base_dir = base_dir
+        self.config = config
+        self._load_authentication()
+
+    @property
+    def is_cors_enabled(self):
+        return 'cors' in self.config
+
+    @property
+    def cors_allowed_origins(self):
+        cors_config = self.config.get('cors', {})
+        origins =  cors_config.get('allowedOrigins', [])
+        if isinstance(origins, list):
+            origins = ",".join(origins)
+        return origins
+    
+    @property
+    def cors_allowed_methods(self):
+        cors_config = self.config.get('cors', {})
+        methods = cors_config.get('allowedMethods', ["GET", "OPTIONS"])
+        if isinstance(methods, list):
+            methods = ",".join(methods)
+        return methods
+    
+    @property
+    def cors_allowed_headers(self):
+        CORS_ALLOW_HEADERS = [
+            'accept',
+            'accept-encoding',
+            'authorization',
+            'content-type',
+            'dnt',
+            'origin',
+            'user-agent',
+            'x-csrftoken',
+            'x-requested-with',
+        ]
+        cors_config = self.config.get('cors', {})
+        headers = cors_config.get('allowedHeaders', ", ".join(CORS_ALLOW_HEADERS))
+        if isinstance(headers, list):
+            headers = ",".join(headers)
+        return headers
+
+    def _load_authentication(self):
+        auth = self.config.get("authentication", None)
+        if not auth:
+            self._is_authn_enabled = False
+            return
+        jwt = auth.get("jwt")
+        if not jwt:
+            self._is_authn_enabled = False
+            return
+        algo = jwt.get("algorithm", None)
+        if not algo or algo not in ('HS256', 'RS256'):
+            raise ConfigException("Invalid JWT algorithm. Supported algorithms are HS256 and RS256")
+
+        if algo == 'HS256':
+            secret = jwt.get("secret", None)
+            if not secret:
+                raise ConfigException("secret must be defined when JWT algorithm is HS256")
+            self._jwt_decode_key = secret
+            self._jwt_decode_algorithm = algo
+            self._is_authn_enabled = True
+        
+        elif algo == 'RS256':
+            public_key = jwt.get("publicKey", None)
+            public_key_path = jwt.get("publicKeyPath", None)
+
+            if public_key and public_key_path:
+                raise ConfigException("When JWT alogithm is RS256, ONLY ONE of publicKey or publicKeyPath must be defined")
+
+            if not public_key and not public_key_path:
+                raise ConfigException("When JWT alogithm is RS256, one of publicKey or publicKeyPath must be defined")
+
+            if public_key_path:
+                # Relative paths are resolved against the base_dir
+                if not os.path.isabs(public_key_path):
+                    public_key_path = os.path.join(self.base_dir, public_key_path)
+                with open(public_key_path) as f:
+                    public_key = f.read()
+            if not public_key.startswith("-----BEGIN PUBLIC KEY-----"):
+                raise ConfigException('Public key does not start with -----BEGIN PUBLIC KEY-----')
+            
+            self._jwt_decode_key = public_key
+            self._jwt_decode_algorithm = algo
+            self._is_authn_enabled = True
+        else:
+            self._is_authn_enabled = False
+
+    @property
+    def is_authn_enabled(self):
+        return self._is_authn_enabled
+    
+    @property
+    def jwt_decode_key(self):
+        return self._jwt_decode_key
+    
+    @property
+    def jwt_decode_algorithm(self):
+        return self._jwt_decode_algorithm

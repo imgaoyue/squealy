@@ -2,11 +2,8 @@ from flask import request, current_app
 from werkzeug.exceptions import HTTPException, Unauthorized, NotFound
 from functools import wraps
 import jwt
-from squealy import app, resources
+from squealy import app, resources, config
 from .resources import Resource
-from .config import SquealyConfig
-
-config = SquealyConfig()
 
 @app.after_request
 def enable_cors(response):
@@ -20,14 +17,15 @@ def enable_cors(response):
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        token = _extract_token(request)
-        if token:
-            try:
-                request.user = jwt.decode(token, config.jwt_decode_key, config.jwt_decode_algorithm)
-            except jwt.exceptions.InvalidTokenError as e:
-                request.user = None
-        else:
-            request.user = None
+        request.user = None
+        if config.is_authn_enabled:
+            token = _extract_token(request)
+            if token:
+                try:
+                    # For now, jwt is the only support authentication mechanism
+                    request.user = jwt.decode(token, config.jwt_decode_key, config.jwt_decode_algorithm)
+                except jwt.exceptions.InvalidTokenError as e:
+                    pass
         return f(*args, **kwargs)
     return decorated_function
 

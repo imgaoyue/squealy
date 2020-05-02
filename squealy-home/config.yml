@@ -1,4 +1,9 @@
 cors:
-  allowed-origins:
+  allowedOrigins:
     - "http://localhost:3000"
+    
+authentication:
+  jwt:
+    algorithm: RS256
+    publicKeyPath: 'public.pem'
     
