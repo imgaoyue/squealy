@@ -1,0 +1,39 @@
+a: 1
+# Cross Origin Resource Sharing, or CORS
+# ======================================
+# CORS headers allow web applications hosted on different origin to make API calls to Squealy.
+# See the [MDN article on CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) if you are not familiar
+# 
+# For most use cases, you only need to set allowed-origins. 
+# The defaults for the other settings are usually perfect for most use cases.
+# 
+# *allowed-origins*: is a list of origins that are allowed to access sqealy. By default, this list is empty.
+# *allowed-headers*: is a list of HTTP request headers that are allowed. 
+# *allowed-methods*: is a list of HTTP methods that are allowed. By default, only GET and OPTIONS are allowed
+#
+# cors:
+#   allowedOrigins: []
+#   allowedHeaders:
+#     - 'accept'
+#     - 'accept-encoding'
+#     - 'authorization'
+#     - 'content-type'
+#     - 'dnt'
+#     - 'origin'
+#     - 'user-agent'
+#     - 'x-csrftoken'
+#     - 'x-requested-with'
+#   allowedMethods: ['GET', 'OPTIONS']
+
+# Authentication
+# ==============
+# Configure how requests are authenticated
+# Currently, only JWT is supported. Only 2 algorithms - HS256 and RS256 are supported for now.
+# When algorithm = RS256, one of publicKey or publicKeyPath is expected. 
+# - publicKey contains the PEM encoded public key as plain text, directly in the YAML file
+# - publicKeyPath is either an absolute or relative path to a file. 
+#   Relative paths are relative to SQUEALY_BASE_DIR
+# authentication:
+#   jwt:
+#     algorithm: RS256
+#     publicKeyPath: 'public.pem'
