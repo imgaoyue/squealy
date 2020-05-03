@@ -33,10 +33,19 @@ else:
 
 # We load the configuration, resources, public key etc. BEFORE we load flask
 # This way, if there is a configuration issue, we fail-fast. 
-from .loader import load_config, load_resources
+from .loader import load_config, load_objects
+from .jinjasql_loader import JinjaWrapper
+from squealy import resources as resources_module
+
 config = load_config()
-resources = load_resources(config)
-        
+_objects = load_objects(config)
+resources = _objects['resources']
+_jinja = JinjaWrapper(snippets=_objects['snippets'])
+
+# HACK
+# To break a cyclic dependency, we initialize jinja after we have loaded resources and snippets
+resources_module.jinja = _jinja
+
 # Next, load flask with the configuration we just loaded
 from flask import Flask
 from werkzeug.middleware.dispatcher import DispatcherMiddleware

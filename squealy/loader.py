@@ -41,13 +41,14 @@ def _load_config_yaml(base_dir):
     return yaml.safe_load(config_file)
     
 
-def load_resources(config):
+def load_objects(config):
     base_dir = config.base_dir
     # Yaml files can have jinja templates embedded
     jinja_env = Environment(loader=FileSystemLoader(base_dir))
     engines = _load_datasources(jinja_env, config)
 
     resources = {}
+    snippets = {}
 
     # Now load remaining yaml files
     # This time, the config object will also be available
@@ -68,20 +69,28 @@ def load_resources(config):
                 if kind == 'resource':
                     path = rawobj.get("path", None)
                     if not path:
-                        raise Exception(f"File {ymlfile} has a Resource without a path")
+                        raise ConfigException(f"File {ymlfile} has a Resource without a path")
                     datasource = rawobj.get("datasource", None)
                     if not datasource:
-                        raise Exception(f"Resource {path} in file {ymlfile} does not have a datasource field")
+                        raise ConfigException(f"Resource {path} in file {ymlfile} does not have a datasource field")
                     engine = engines.get(datasource, None)
                     if not engine:
-                        raise Exception(f"Invalid datasource {datasource} in resource {path}, file {ymlfile}")
+                        raise ConfigException(f"Invalid datasource {datasource} in resource {path}, file {ymlfile}")
                     resource = _load_resource(rawobj, config, engine)
                     resources[resource.uuid] = resource
-                elif kind == 'datasource':
-                    continue
+                elif kind == 'snippet':
+                    name = rawobj.get("name", None)
+                    template = rawobj.get("template", None)
+                    if not name:
+                        raise ConfigException("Snippet is missing name")
+                    if not template:
+                        raise ConfigException(f"Snippet {name} is missing template")
+                    snippets[name] = template
+
                 else:
                     raise Exception(f"Unknown object of kind = {kind} in {ymlfile}")
-    return resources
+    
+    return {"resources": resources, "snippets": snippets}
 
 def _load_datasources(jinja_env, config):
     template = jinja_env.get_template("datasources.yml")

@@ -3,11 +3,14 @@ import arrow
 import uuid
 import datetime
 from werkzeug.exceptions import Unauthorized, Forbidden
-from .jinjasql_loader import JinjaWrapper
 from .formatters import SimpleFormatter
 from .table import Table
 
-jinja = JinjaWrapper()
+# UGLY HACK
+# To break a cyclic dependency, jinja is set after yaml files are loaded
+# See squealy/__init__.py 
+jinja = None
+
 logger= logging.getLogger( __name__ )
 class Resource:
     def __init__(self, path, query, engine, name=None, description=None,

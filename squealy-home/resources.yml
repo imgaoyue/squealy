@@ -1,14 +1,26 @@
+kind: snippet
+name: monthly_sales
+template: |
+    monthly_sales as (
+        SELECT 'jan' as month, 'north' as region, 15 as sales UNION ALL
+        SELECT 'jan' as month, 'south' as region, 36 as sales UNION ALL
+        SELECT 'feb' as month, 'north' as region, 29 as sales UNION ALL
+        SELECT 'feb' as month, 'south' as region, 78 as sales UNION ALL
+        SELECT 'mar' as month, 'north' as region, 33 as sales UNION ALL
+        SELECT 'mar' as month, 'south' as region, 65 as sales
+    )
+---
+
 kind: resource
 path: /charts/testapi
 datasource: sqlitedb
 authentication:
     requires_authentication: false
 query: |
-    SELECT month, sales from (
-        SELECT 'jan' as month, 6543 as sales UNION ALL
-        SELECT 'feb' as month, 4567 as sales UNION ALL
-        SELECT 'mar' as month, 1907 as sales
-    ) s
+    WITH {% include 'monthly_sales' %}
+    SELECT month, sum(sales) as sales
+    FROM monthly_sales 
+    GROUP BY month
 formatter: SeriesFormatter
 ---
 
