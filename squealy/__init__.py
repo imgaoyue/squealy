@@ -50,9 +50,23 @@ resources_module.jinja = _jinja
 from flask import Flask
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
+from flask_swagger_ui import get_swaggerui_blueprint
 
 # app is used by views.py to register routes
 app = Flask(__name__)
+
+
+# Register Swagger Blueprint
+
+swaggerui_blueprint = get_swaggerui_blueprint(
+    '/docs',
+    '/swagger',
+    config={
+        'app_name': "Squealy API Documentation"
+    },
+)
+
+app.register_blueprint(swaggerui_blueprint, url_prefix="/docs")
 
 # Add prometheus wsgi middleware to route /metrics requests
 # application object is then used by wsgi / gunicorn to startup the application

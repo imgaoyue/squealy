@@ -46,6 +46,46 @@ def process_resource(resource_id):
     params = request.args.to_dict()
     return resource.process(request.user, params)
 
+@app.route("/swagger")
+def swagger():
+    paths = {}
+    for resource in resources.values():
+        path = {}
+        path['summary'] = resource.name
+        path['description'] = resource.description
+        path['responses'] = {
+            "200": {"description": "A JSON"}
+        }
+        paths[resource.path] = {"get": path}
+
+    return {
+        "openapi": "3.0.0",
+        "info": {
+            "title": "Squealy APi",
+            "version": "0.1.9"
+        },
+        "servers": [ 
+            {
+            "url": request.url_root
+            }
+        ],
+        "paths": paths,
+        "components": {
+            "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+            }
+        },
+        "security": [
+            {
+            "BearerAuth": []
+            }
+        ]
+    }
+
 @app.route('/_logs')
 def view_logs():
     from squealy import dev_logs
