@@ -120,7 +120,7 @@ def _identify_param_style(engine):
 
 def _load_resource(raw_resource, config, engine):
     path = raw_resource['path']
-    name = raw_resource.get('name', None)
+    summary = raw_resource.get('summary', None)
     description = raw_resource.get('description', None)
     query = raw_resource.get('query', None)
     authentication = raw_resource.get('authentication', {"requires_authentication": True})
@@ -139,7 +139,7 @@ def _load_resource(raw_resource, config, engine):
     if not query:
         raise Exception(f"Missing query in resource {path}, file {raw_resource['__sourcefile__']} ")
     
-    return Resource(path, query, engine, name=name, description=description, config=config, 
+    return Resource(path, query, engine, summary=summary, description=description, config=config, 
         requires_authentication=requires_authentication, formatter=formatter,
         authorization=authorization, param_defns=param_defns)
 

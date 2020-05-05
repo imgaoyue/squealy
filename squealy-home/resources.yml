@@ -14,6 +14,7 @@ template: |
 kind: resource
 path: /charts/testapi
 datasource: sqlitedb
+summary: Monthly sales in millions of dollars
 authentication:
     requires_authentication: false
 query: |

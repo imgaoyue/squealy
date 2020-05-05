@@ -13,7 +13,7 @@ jinja = None
 
 logger= logging.getLogger( __name__ )
 class Resource:
-    def __init__(self, path, query, engine, name=None, description=None,
+    def __init__(self, path, query, engine, summary=None, description=None,
             config = None, transformations=None, formatter=None, options=None,
             requires_authentication=True, authorization=None,
             param_defns=None):
@@ -31,8 +31,8 @@ class Resource:
         
         # The database engine against which to execute the query
         self.engine = engine
-        self.name = name if name else self.path.replace('/', ' ').strip()
-        self.description = description if description else self.name
+        self.summary = summary if summary else self.path.replace('/', ' ').strip()
+        self.description = description
         
         self.requires_authentication = requires_authentication
         self.authorization = authorization or []

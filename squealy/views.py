@@ -51,7 +51,7 @@ def swagger():
     paths = {}
     for resource in resources.values():
         path = {}
-        path['summary'] = resource.name
+        path['summary'] = resource.summary
         path['description'] = resource.description
         path['responses'] = {
             "200": {"description": "A JSON"}
