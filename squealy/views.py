@@ -56,7 +56,9 @@ def swagger():
         path['responses'] = {
             "200": {"description": "A JSON"}
         }
+        path['parameters'] = _load_parameters(resource)
         paths[resource.path] = {"get": path}
+        
 
     return {
         "openapi": "3.0.0",
@@ -85,6 +87,24 @@ def swagger():
             }
         ]
     }
+
+def _load_parameters(resource):
+    parameters = []
+    for param in resource.param_defns:
+        doc = {"in": "query"}
+        doc["name"] = param.name
+        doc["description"] = param.description
+        doc['required'] = param.mandatory
+        doc['description'] = param.description
+        
+        doc["schema"] = {"type": param.openapi_type()}
+        if hasattr(param, 'default_value') and param.default_value:
+            doc['schema']['default'] = param.default_value
+        if hasattr(param, 'valid_values') and param.valid_values:
+            doc['schema']['enum'] = param.valid_values
+        
+        parameters.append(doc)
+    return parameters
 
 @app.route('/_logs')
 def view_logs():

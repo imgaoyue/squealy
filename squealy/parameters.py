@@ -21,16 +21,20 @@ class Parameter():
 
 class String(Parameter):
     def __init__(self, name, description=None, mandatory=False, default_value=None, valid_values=None, **kwargs):
+        self.mandatory = mandatory
         self.default_value = default_value
         self.valid_values = valid_values
         self.name = name
         self.description = description if description else ""
 
+    def openapi_type(self):
+        return 'string'
+    
     def normalize(self, value):
         if not value and self.default_value:
             value = self.default_value
         if not value:
-            if mandatory:
+            if self.mandatory:
                 raise RequiredParameterMissingException(name)
             else:
                 return None
@@ -52,16 +56,20 @@ class String(Parameter):
 
 class Number(Parameter):
     def __init__(self, name, description=None, mandatory=False, default_value=None, valid_values=None, **kwargs):
+        self.mandatory = mandatory
         self.default_value = default_value
         self.valid_values = valid_values
         self.name = name
         self.description = description if description else ""
 
+    def openapi_type(self):
+        return 'number'
+
     def normalize(self, value):
         if not value and self.default_value:
             value = self.default_value
         if not value:
-            if mandatory:
+            if self.mandatory:
                 raise RequiredParameterMissingException(name)
             else:
                 return None
@@ -78,12 +86,16 @@ class Number(Parameter):
 
 class Date(Parameter):
     def __init__(self, name, description=None, mandatory=False, default_value=None, format=None, **kwargs):
+        self.mandatory = mandatory
         self.default_value = default_value
         self.format = format
         self.name = name
         self.description = description if description else ""
         self.date_macros = {"today": self.today, "tomorrow": self.tomorrow,
                        "next_day": self.tomorrow, "current_day": self.today}
+
+    def openapi_type(self):
+        return 'string'
 
     def today(self, value):
         date = arrow.utcnow()
@@ -122,7 +134,11 @@ class Datetime(Parameter):
         self.default_value = default_value
         self.format = format
         self.name = name
+        self.mandatory = mandatory
         self.description = description if description else ""
+
+    def openapi_type(self):
+        return 'string'
 
     def now(self, value):
         date = arrow.utcnow()
