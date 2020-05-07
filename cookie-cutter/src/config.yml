@@ -1,4 +1,3 @@
-a: 1
 # Cross Origin Resource Sharing, or CORS
 # ======================================
 # CORS headers allow web applications hosted on different origin to make API calls to Squealy.
@@ -33,7 +32,7 @@ a: 1
 # - publicKey contains the PEM encoded public key as plain text, directly in the YAML file
 # - publicKeyPath is either an absolute or relative path to a file. 
 #   Relative paths are relative to SQUEALY_BASE_DIR
-# authentication:
-#   jwt:
-#     algorithm: RS256
-#     publicKeyPath: 'public.pem'
+authentication:
+  jwt:
+    algorithm: HS256
+    secret: 'secret'
