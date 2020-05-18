@@ -1,10 +1,3 @@
-import decimal
-from werkzeug.exceptions import HTTPException
-from flask.json import JSONEncoder
-
-class InvalidChartDataException(HTTPException):
-    code = 404
-
 class Formatter:
     def format(self, table):
         pass
@@ -39,20 +32,20 @@ class GoogleChartsFormatter(Formatter):
         Converts the query response to data format desired by google charts
         Google Charts Format ->
         {
-            rows: [
-                "c":
-                    [
-                        {
-                            "v": series/x-axis label name,
-                            "v": value
-                        },
-                    ], ...
+          rows: [
+            "c":
+              [
+                {
+                  "v": series/x-axis label name,
+                  "v": value
+                },
+              ], ...
             ],
             cols: [
-                {
-                    "label": Column name,
-                    "type": data type for the column
-                }
+              {
+                "label": Column name,
+                "type": data type for the column
+              }
             ]
         }
         """

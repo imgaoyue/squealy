@@ -23,7 +23,7 @@ static/*
 salesdb:memory
 
 # Oracle native drivers 
-drivers/instantclient_19_6/*
+squealy-app/drivers/instantclient_19_6/*
 
 # Playground file, not relevant to the project
 play.py
