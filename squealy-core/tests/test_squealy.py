@@ -108,7 +108,16 @@ class ResourceTests(unittest.TestCase):
             }]
         resource = Resource("questions-with-comments", queries=queries)
         data = resource.process(self.squealy, {"params": {}})
-        print(data)
+        self.assertEqual(data, [
+            {'id': 100, 'title': 'How to install Squealy?', 
+                'comments': [{'id': 101, 'qid': 100, 'comment': 'Which OS?'}, 
+                            {'id': 102, 'qid': 100, 'comment': 'Ubuntu 18.04'}, 
+                            {'id': 103, 'qid': 100, 'comment': 'Ok, pip install squealy'}
+            ]}, 
+            {'id': 200, 'title': 'Can Squealy be extended?', 
+                'comments': [{'id': 201, 'qid': 200, 'comment': 'Yes, it can be extended'}]
+            }
+        ])
 
 class FormatterTests(unittest.TestCase):
     def setUp(self):
