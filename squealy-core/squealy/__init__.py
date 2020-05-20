@@ -171,9 +171,15 @@ class Resource:
                 results[query.key] = result
             elif self.queries.shape == 'list':
                 assert query.is_list
-                raise SquealyException("Merging two lists not yet implemented")
+                self.merge_lists(results, result, query.merge, query.key)
             
         return results
+    
+    def merge_lists(self, parent_list, child_list, merge, key):
+        for parent in parent_list:
+            primary_key = parent[merge['parent']]
+            children = [c for c in child_list if c[merge['child']] == primary_key]
+            parent[key] = children
         
 class Queries:
     def __init__(self, queries):
@@ -223,8 +229,11 @@ class Queries:
     def _validate_shape_list(self):
         if self.shape == 'list':
             for q in self.non_root_queries:
-                if q.is_for_object:
+                if q.is_object:
                     raise SquealyConfigException("When the root query is a list, all other queries must also return a list")
+                if not q.merge:
+                    raise SquealyException("When the root query is a list, merge must be specified in all child queries")
+            
     
     @property
     def root_queries(self):
@@ -239,7 +248,7 @@ class Queries:
         self._validate_shape_list()
 
 class Query:
-    def __init__(self, id=None, isRoot=False, key=None, queryForList=None, queryForObject=None, datasource=None):
+    def __init__(self, id=None, isRoot=False, key=None, queryForList=None, queryForObject=None, datasource=None, merge=None):
         if queryForList and queryForObject:
             raise SquealyConfigException("Only one of queryForList, queryForObject must be provided, not both")
         if not queryForList and not queryForObject:
@@ -257,10 +266,16 @@ class Query:
         if not isRoot and not key:
             raise SquealyConfigException("key must be provided for all non-root queries")
 
+        if merge:
+            if not ('child' in merge and 'parent' in merge):
+                raise SquealyConfigException("merge should specify parent and child columns")
+        
         self.id = id
         self.is_root = isRoot
         self.key = key
         self.datasource = datasource
+        self.merge = merge
+        
 
 class Engine:
     'A SQL / NoSQL compliant interface to execute a query. Returns a Table'

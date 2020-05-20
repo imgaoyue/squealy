@@ -78,6 +78,37 @@ class ResourceTests(unittest.TestCase):
                     {'id': 405, 'title': "Yes, it's just a library, not a framework"}
                 ]
             })
+    
+    def test_list_resource(self):
+        queries = [{
+              "id": "questions",
+              "isRoot": True,
+              "queryForList": """
+                    SELECT 100 as id, 'How to install Squealy?' as title
+                    UNION ALL
+                    SELECT 200 as id, 'Can Squealy be extended?' as title
+                """
+
+            }, {
+              "key": "comments",
+              "queryForList": """
+                SELECT rs.id as id, rs.qid as qid, rs.comment as comment FROM (
+                    SELECT 101 as id, 100 as qid, 'Which OS?' as comment UNION ALL
+                    SELECT 102 as id, 100 as qid, 'Ubuntu 18.04' as comment UNION ALL
+                    SELECT 103 as id, 100 as qid, 'Ok, pip install squealy' as comment UNION ALL
+                    SELECT 201 as id, 200 as qid, 'Yes, it can be extended' as comment UNION ALL
+                    SELECT 301 as id, 300 as qid, 'Unrelated comment, should be filtered' as comment
+                ) rs
+                WHERE rs.qid in {{ questions.id | inclause }}
+                """,
+               "merge" :{
+                   "parent": "id",
+                   "child": "qid"
+               }
+            }]
+        resource = Resource("questions-with-comments", queries=queries)
+        data = resource.process(self.squealy, {"params": {}})
+        print(data)
 
 class FormatterTests(unittest.TestCase):
     def setUp(self):
