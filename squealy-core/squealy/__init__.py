@@ -132,20 +132,135 @@ class Squealy:
         return m
 
 class Resource:
-    def __init__(self, _id, query, datasource=None, formatter=None):
+    def __init__(self, _id, queries=None, datasource=None, formatter=None):
         self.id = _id
-        # The query to execute
-        self.query = query
-        self.datasource = datasource
+        self.queries = Queries(queries)
+        self.default_datasource = datasource
         self.formatter = formatter if formatter else JsonFormatter()
         
-    def process(self, squealy, context):
-        engine = squealy.get_engine(self.datasource)
+    def process(self, squealy, initial_context):
         jinja = squealy.get_jinja()
+        
+        if not self.queries.has_root_query:
+            results = {}
+        
+        context = initial_context
+        for query in self.queries:
+            engine = squealy.get_engine(query.datasource or self.default_datasource)
+            finalquery, bindparams = jinja.prepare_query(query.query, context, engine.param_style)
+            table = engine.execute(finalquery, bindparams)
+            result = table.as_dict()
+            if query.is_object:
+                if not result:
+                    raise SquealyException("Expected a single row, found none")
+                if len(result) > 1:
+                    raise SquealyException("Expected a single row, found " + len(result) + " rows")
+                result = result[0]
+            
+            # This lets subsequent queries access data from the current query
+            if query.id:
+                if query.is_list:
+                    shape = 'list'
+                else:
+                    shape = 'object'
+                context[query.id] = TableProxy(table, shape)
 
-        finalquery, bindparams = jinja.prepare_query(self.query, context, engine.param_style)
-        table = engine.execute(finalquery, bindparams)
-        return self.formatter.format(table)
+            if query.is_root:
+                results = result
+            elif self.queries.shape == 'object':
+                results[query.key] = result
+            elif self.queries.shape == 'list':
+                assert query.is_list
+                raise SquealyException("Merging two lists not yet implemented")
+            
+        return results
+        
+class Queries:
+    def __init__(self, queries):
+        if not queries:
+            raise SquealyConfigException("queries cannot be null / empty")
+        if not isinstance(queries, (list, Queries)):
+            raise SquealyConfigException("queries must be a list")
+        
+        if isinstance(queries, list):
+            parsed_queries = []
+            for query in queries:
+                if not isinstance(query, dict):
+                    raise SquealyConfigException('query must be a dict')
+                parsed_queries.append(Query(**query))
+            
+            self.queries = parsed_queries
+        elif isinstance(queries, Queries):
+            self.queries = queries.queries
+        self._validate()
+        
+
+    def __iter__(self):
+        return iter(self.queries)
+    
+    @property
+    def has_root_query(self):
+        if self.root_queries:
+            return True
+        else:
+            return False
+
+    @property
+    def shape(self):
+        if self.root_queries:
+            root = self.root_queries[0]
+            if root.is_list:
+                return 'list'
+            elif root.is_object:
+                return 'object'
+        else:
+            return 'object'
+
+    def _single_root_only(self):
+        if len(self.root_queries) > 1:
+            raise SquealyConfigException("Multiple root queries found. Either 0 or 1 root query is allowed")
+    
+    def _validate_shape_list(self):
+        if self.shape == 'list':
+            for q in self.non_root_queries:
+                if q.is_for_object:
+                    raise SquealyConfigException("When the root query is a list, all other queries must also return a list")
+    
+    @property
+    def root_queries(self):
+        return [q for q in self.queries if q.is_root]
+    
+    @property
+    def non_root_queries(self):
+        return [q for q in self.queries if not q.is_root]
+
+    def _validate(self):
+        self._single_root_only()
+        self._validate_shape_list()
+
+class Query:
+    def __init__(self, id=None, isRoot=False, key=None, queryForList=None, queryForObject=None, datasource=None):
+        if queryForList and queryForObject:
+            raise SquealyConfigException("Only one of queryForList, queryForObject must be provided, not both")
+        if not queryForList and not queryForObject:
+            raise SquealyConfigException("At least one of queryForList or queryForObject must be provided")
+
+        self.query = queryForList or queryForObject
+        if queryForList:
+            self.is_list = True
+        elif queryForObject:
+            self.is_list = False
+        else:
+            raise SquealyException("Should not reach here")
+        self.is_object = not self.is_list
+        
+        if not isRoot and not key:
+            raise SquealyConfigException("key must be provided for all non-root queries")
+
+        self.id = id
+        self.is_root = isRoot
+        self.key = key
+        self.datasource = datasource
 
 class Engine:
     'A SQL / NoSQL compliant interface to execute a query. Returns a Table'
@@ -164,6 +279,29 @@ class Table:
     
     def as_dict(self):
         return [dict(zip(self.columns, r)) for r in self.data]
+
+class TableProxy:
+    def __init__(self, table, shape):
+        self._table = table
+        if shape in ('list', 'object'):
+            self._shape = shape
+        else:
+            raise SquealyException("Invalid shape - " + shape)
+    
+    def __getattribute__(self, name):
+        table = super().__getattribute__('_table')
+        shape = super().__getattribute__('_shape')
+        if name in table.columns:
+            indx = table.columns.index(name)
+            if shape == 'object':
+                return table.data[0][indx]
+            elif shape == 'list':
+                values = [row[indx] for row in table.data]
+                return values
+            else:
+                raise SquealyException("Invalid shape - should not have entered this branch")
+        else:
+            return super().__getattribute__(name)
 
 class JinjaWrapper:
     """Wraps JinjaSQL object to work around some quirks in JinjaSQL
