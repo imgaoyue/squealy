@@ -1,0 +1,32 @@
+id: question_object
+type: snippet
+template: |
+  SELECT q.id, q.title from (
+    SELECT 1 as id, 'How to install squealy?' as title UNION ALL
+    SELECT 2 as id, 'Can Squealy be used in Java?' as title UNION ALL
+    SELECT 3 as id, 'Does Squealy support Oracle?' as title
+  ) q
+---
+    
+id: questions
+type: resource
+queries:
+  - isRoot: true
+    contextKey: questions
+    queryForList: |
+      {% include 'question_object' %}
+      WHERE q.id in (1,2)
+  - key: comments
+    merge:
+      parent: id
+      child: qid
+    queryForList: |
+      SELECT c.qid as qid, c.comment FROM (
+        SELECT 1 as qid, "What OS?" as comment UNION ALL
+        SELECT 1 as qid, "Ubuntu 18.04" as comment UNION ALL
+        SELECT 1 as qid, "Okay - pip install squealy" as comment UNION ALL
+        SELECT 2 as qid, "No, only python for now" as comment UNION ALL
+        SELECT 2 as qid, "You can run in docker and call over http from java" as comment UNION ALL
+        SELECT 3 as qid, "Comment on unrelated question" as comment UNION ALL
+        SELECT 4 as qid, "Comment on non-existent question" as comment
+      ) c WHERE c.qid in {{ questions.id | inclause }}

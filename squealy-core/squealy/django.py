@@ -1,8 +1,10 @@
+import os
+from django.conf import settings
 from django.db import connections
 from django.views import View
 from django.http import JsonResponse
 
-from squealy import Squealy, Engine, Table
+from squealy import Squealy, Engine, Table, SquealyConfigException
 
 class DjangoSquealy(Squealy):
     def __init__(self, snippets=None, resources=None, home_dir=None):
@@ -33,8 +35,19 @@ class DjangoORMEngine(Engine):
             row = cursor.fetchone()
             return row[0]
 
+def load_default_squealy():
+    if hasattr(settings, 'SQUEALY_HOME_DIR'):
+        home_dir = settings.SQUEALY_HOME_DIR
+    else:
+        home_dir = None
+    squealy = DjangoSquealy(home_dir=home_dir)
+    return squealy
+
+_DEFAULT_SQUEALY = load_default_squealy()
+
 class SqlView(View):
-    squealy = None
+    # squealy and resource_id will be set when SqlView.as_view() is called
+    squealy = _DEFAULT_SQUEALY
     resource_id = None
 
     def build_context(self, request, *args, **kwargs):
@@ -48,7 +61,10 @@ class SqlView(View):
         }
 
     def get(self, request, *args, **kwargs):
+        if not self.resource_id:
+            raise SquealyConfigException('resource_id is not set, did you forget to pass it in SqlView.as_view(resource_id=) ?')
         context = self.build_context(request, *args, **kwargs)
         resource = self.squealy.get_resource(self.resource_id)
         data = resource.process(self.squealy, context)
         return JsonResponse(data)
+

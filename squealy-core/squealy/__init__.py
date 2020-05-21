@@ -70,8 +70,8 @@ class Squealy:
         resources = {}
         snippets = {}
 
-        for raw_obj in self._object_iter(base_dir):
-            if not raw_obj:
+        for rawobj in self._object_iter(base_dir):
+            if not rawobj:
                 continue
             _type = rawobj.get('type', None)
             if not _type:
@@ -103,15 +103,15 @@ class Squealy:
 
     def _load_resource(self, raw_resource):
         _id = raw_resource.get('id', None)
-        query = raw_resource.get('query', None)
+        queries = raw_resource.get('queries', None)
         datasource = raw_resource.get('datasource', None)
         formatter = self._load_formatter(raw_resource.get('formatter', 'JsonFormatter'))
         
         if not _id:
             raise SquealyConfigException("Resource is missing id " + raw_resource)
-        if not query:
-            raise SquealyConfigException(f"Missing query in resource {_id}")
-        return Resource(_id, query, datasource, formatter=formatter)
+        if not queries:
+            raise SquealyConfigException("Queries is empty or missing")
+        return Resource(_id=_id, queries=queries, datasource=datasource, formatter=formatter)
 
     def _load_formatter(self, raw_formatter):
         if not '.' in raw_formatter:
