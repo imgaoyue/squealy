@@ -129,54 +129,40 @@ class Squealy:
         return m
 
 class Resource:
-    def __init__(self, _id, queries=None, datasource=None, formatter=None):
+    def __init__(self, _id, queries, datasource=None, formatter=None):
+        if not _id:
+            raise SquealyConfigException("Missing id field")
+        if not queries:
+            raise SquealyConfigException("Queries cannot be empty")
+
         self.id = _id
         self.queries = Queries(queries)
         self.default_datasource = datasource
         self.formatter = formatter if formatter else JsonFormatter()
+
+        if len(queries) > 1 and not self.formatter.supports_multi_queries():
+            raise SquealyConfigException(type(self.formatter) + " does not support more than 1 query")
         
     def process(self, squealy, initial_context):
         jinja = squealy.get_jinja()
-        
-        if not self.queries.has_root_query:
-            results = {}
-        
         context = initial_context
+        results = None
         for query in self.queries:
             engine = squealy.get_engine(query.datasource or self.default_datasource)
             finalquery, bindparams = jinja.prepare_query(query.query, context, engine.param_style)
             table = engine.execute(finalquery, bindparams)
-            result = table.as_dict()
+            
             if query.is_object:
-                if not result:
-                    raise SquealyException("Expected a single row, found none")
-                if len(result) > 1:
-                    raise SquealyException("Expected a single row, found " + len(result) + " rows")
-                result = result[0]
+                if len(table) == 0 and not query.is_optional:
+                    raise SquealyException("Expected a single row, found none. If 0 rows are expected, you can set isOptional to true")
+                if len(table) > 1:
+                    raise SquealyException("Expected a single row, found " + len(table) + " rows")
             
-            # This lets subsequent queries access data from the current query
-            if query.id:
-                if query.is_list:
-                    shape = 'list'
-                else:
-                    shape = 'object'
-                context[query.id] = TableProxy(table, shape)
-
-            if query.is_root:
-                results = result
-            elif self.queries.shape == 'object':
-                results[query.key] = result
-            elif self.queries.shape == 'list':
-                assert query.is_list
-                self.merge_lists(results, result, query.merge, query.key)
-            
+            # Lets subsequent queries access data from the current query
+            if query.context_key:
+                context[query.context_key] = TableProxy(table, 'list' if query.is_list else 'object')
+            results = self.formatter.format(results, query, table)
         return results
-    
-    def merge_lists(self, parent_list, child_list, merge, key):
-        for parent in parent_list:
-            primary_key = parent[merge['parent']]
-            children = [c for c in child_list if c[merge['child']] == primary_key]
-            parent[key] = children
         
 class Queries:
     def __init__(self, queries):
@@ -186,6 +172,12 @@ class Queries:
             raise SquealyConfigException("queries must be a list")
         
         if isinstance(queries, list):
+            # Single queries are alway root queries
+            if len(queries) == 1:
+                if not isinstance(queries[0], dict):
+                    raise SquealyConfigException('query must be a dict')
+                queries[0]['isRoot'] = True
+            
             parsed_queries = []
             for query in queries:
                 if not isinstance(query, dict):
@@ -197,6 +189,8 @@ class Queries:
             self.queries = queries.queries
         self._validate()
         
+    def __len__(self):
+        return len(self.queries)
 
     def __iter__(self):
         return iter(self.queries)
@@ -245,7 +239,7 @@ class Queries:
         self._validate_shape_list()
 
 class Query:
-    def __init__(self, id=None, isRoot=False, key=None, queryForList=None, queryForObject=None, datasource=None, merge=None):
+    def __init__(self, contextKey=None, isRoot=False, key=None, queryForList=None, queryForObject=None, datasource=None, merge=None, isOptional=False):
         if queryForList and queryForObject:
             raise SquealyConfigException("Only one of queryForList, queryForObject must be provided, not both")
         if not queryForList and not queryForObject:
@@ -267,10 +261,11 @@ class Query:
             if not ('child' in merge and 'parent' in merge):
                 raise SquealyConfigException("merge should specify parent and child columns")
         
-        self.id = id
+        self.context_key = contextKey
         self.is_root = isRoot
         self.key = key
         self.datasource = datasource
+        self.is_optional = isOptional
         self.merge = merge
         
 
@@ -289,6 +284,9 @@ class Table:
         self.columns = columns if columns else []
         self.data = data if data else []
     
+    def __len__(self):
+        return len(self.data)
+
     def as_dict(self):
         return [dict(zip(self.columns, r)) for r in self.data]
 

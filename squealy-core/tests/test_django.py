@@ -77,4 +77,4 @@ class DjangoTests(unittest.TestCase):
         from django.test import Client
         c = Client()
         response = c.get("/squealy/sqlite/")
-        self.assertEqual(response.json(), {'id': 1, 'name': 'A'})
+        self.assertEqual(response.json(), {'data': {'id': 1, 'name': 'A'}})

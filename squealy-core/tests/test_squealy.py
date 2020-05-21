@@ -24,8 +24,8 @@ class ResourceTests(unittest.TestCase):
     
     def test_object_resource(self):
         queries = [{
-            "id": "user",
             "isRoot": True,
+            "contextKey": "user",
             "queryForObject": "SELECT 2 as id, 'sri' as displayName"
         }, {
             "key": "favouriteFruits",
@@ -42,6 +42,7 @@ class ResourceTests(unittest.TestCase):
         }]
         resource = Resource("user-profile", queries=queries)
         data = resource.process(self.squealy, {"params": {}})
+        data = data['data']
         self.assertEqual(data, {
             'id': 2, 'displayName': 'sri', 
             'favouriteFruits': [{'id': 1, 'fruit': 'Apple'}, {'id': 2, 'fruit': 'Banana'}], 
@@ -68,6 +69,7 @@ class ResourceTests(unittest.TestCase):
             }]
         resource = Resource("user-profile", queries=queries)
         data = resource.process(self.squealy, {"params": {}})
+        data = data['data']
         self.assertEqual(data, {'profile': {'id': 2, 'displayName': 'sri'}, 
                 'recentQuestions': [
                     {'id': 101, 'title': 'How to install Squealy?'}, 
@@ -81,7 +83,7 @@ class ResourceTests(unittest.TestCase):
     
     def test_list_resource(self):
         queries = [{
-              "id": "questions",
+              "contextKey": "questions",
               "isRoot": True,
               "queryForList": """
                     SELECT 100 as id, 'How to install Squealy?' as title
@@ -108,6 +110,7 @@ class ResourceTests(unittest.TestCase):
             }]
         resource = Resource("questions-with-comments", queries=queries)
         data = resource.process(self.squealy, {"params": {}})
+        data = data['data']
         self.assertEqual(data, [
             {'id': 100, 'title': 'How to install Squealy?', 
                 'comments': [{'id': 101, 'qid': 100, 'comment': 'Which OS?'}, 
@@ -148,14 +151,12 @@ class FormatterTests(unittest.TestCase):
         self.squealy = Squealy(snippets=snippets, resources=resources)
         self.squealy.add_engine('default', InMemorySqliteEngine())
 
-    @unittest.skip
     def test_simple_formatter(self):
         resource = self._clone_resource("monthly-sales", SimpleFormatter())
         data = resource.process(self.squealy, {"params": {}})
         self.assertEqual(data['columns'], ['month', 'sales'])
         self.assertEqual(data['data'], [('feb', 107), ('jan', 51), ('mar', 98)])
     
-    @unittest.skip
     def test_series_formatter(self):
         resource = self._clone_resource("monthly-sales", SeriesFormatter())
         data = resource.process(self.squealy, {"params": {}})
@@ -163,7 +164,6 @@ class FormatterTests(unittest.TestCase):
         self.assertEqual(data['month'], ['feb', 'jan', 'mar'])
         self.assertEqual(data['sales'], [107, 51, 98])
     
-    @unittest.skip
     def test_google_charts_formatter(self):
         resource = self._clone_resource("monthly-sales", GoogleChartsFormatter())
         data = resource.process(self.squealy, {"params": {}})
@@ -181,7 +181,7 @@ class FormatterTests(unittest.TestCase):
     def test_json_formatter(self):
         resource = self._clone_resource("monthly-sales", JsonFormatter())
         data = resource.process(self.squealy, {"params": {}})
-        #data = data['data']
+        data = data['data']
         self.assertEqual(len(data), 3)
         self.assertEqual(data[0], {'month': 'feb', 'sales': 107})
         self.assertEqual(data[1], {'month': 'jan', 'sales': 51})
