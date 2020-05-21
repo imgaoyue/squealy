@@ -91,4 +91,18 @@ class DjangoTests(unittest.TestCase):
     def test_sqlview_with_default_squealy(self):
         c = Client()
         response = c.get("/squealy/questions/")
-        self.assertEqual(response.json(), {'data': [{'id': 1, 'title': 'How to install squealy?', 'comments': [{'qid': 1, 'comment': 'What OS?'}, {'qid': 1, 'comment': 'Ubuntu 18.04'}, {'qid': 1, 'comment': 'Okay - pip install squealy'}]}, {'id': 2, 'title': 'Can Squealy be used in Java?', 'comments': [{'qid': 2, 'comment': 'No, only python for now'}, {'qid': 2, 'comment': 'You can run in docker and call over http from java'}]}]})
+
+        self.assertEqual(response.json()['data'], 
+            [{'id': 1, 'title': 'How to install squealy?', 
+                'comments': [
+                    {'qid': 1, 'comment': 'What OS?'}, 
+                    {'qid': 1, 'comment': 'Ubuntu 18.04'}, 
+                    {'qid': 1, 'comment': 'Okay - pip install squealy'}
+                ]
+            }, {'id': 2, 'title': 'Can Squealy be used in Java?', 
+                'comments': [
+                    {'qid': 2, 'comment': 'No, only python for now'}, 
+                    {'qid': 2, 'comment': 'You can run in docker and call over http from java'}
+                ]
+            }
+        ])
