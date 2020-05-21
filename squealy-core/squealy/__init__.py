@@ -288,7 +288,32 @@ class Table:
         return len(self.data)
 
     def as_dict(self):
-        return [dict(zip(self.columns, r)) for r in self.data]
+        result = [dict(zip(self.columns, r)) for r in self.data]
+        if self.requires_unflattening:
+            result = [Table.unflatten(d) for d in result]
+        return result
+
+    # Copied verbatim from https://stackoverflow.com/a/6037657/242940
+    @staticmethod
+    def unflatten(dictionary):
+        resultDict = dict()
+        for key, value in dictionary.items():
+            parts = key.split(".")
+            d = resultDict
+            for part in parts[:-1]:
+                if part not in d:
+                    d[part] = dict()
+                d = d[part]
+            d[parts[-1]] = value
+        return resultDict
+    
+    @property
+    def requires_unflattening(self):
+        cols_with_period = [c for c in self.columns if '.' in c]
+        if cols_with_period:
+            return True
+        else:
+            return False
 
 class TableProxy:
     def __init__(self, table, shape):

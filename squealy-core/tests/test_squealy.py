@@ -22,6 +22,20 @@ class ResourceTests(unittest.TestCase):
         self.squealy = Squealy(resources=[])
         self.squealy.add_engine('default', InMemorySqliteEngine())
     
+    def test_unflatten(self):
+        queries = [{
+            "isRoot": True,
+            "queryForObject": """SELECT 1 as 'author.id', 'sri' as 'author.displayName', 'Sripathi Krishnan' as 'author.fullName',
+                101 as id, 'Does squealy support hierarchial response?' as title
+            """
+        }]
+        resource = Resource("nested-structure", queries=queries)
+        data = resource.process(self.squealy, {"params": {}})
+        data = data['data']
+        self.assertEqual(data, {'author': 
+                                    {'id': 1, 'displayName': 'sri', 'fullName': 'Sripathi Krishnan'}, 
+                                'id': 101, 'title': 'Does squealy support hierarchial response?'})
+
     def test_object_resource(self):
         queries = [{
             "isRoot": True,
