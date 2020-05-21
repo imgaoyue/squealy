@@ -20,7 +20,7 @@ class InMemorySqliteEngine(Engine):
 class ResourceTests(unittest.TestCase):
     def setUp(self):
         self.squealy = Squealy(resources=[])
-        self.squealy.add_engine(None, InMemorySqliteEngine())
+        self.squealy.add_engine('default', InMemorySqliteEngine())
     
     def test_object_resource(self):
         queries = [{
@@ -146,7 +146,7 @@ class FormatterTests(unittest.TestCase):
         resource = Resource("monthly-sales", queries=[{"isRoot": True, "queryForList": query}])
         resources = {resource.id: resource}
         self.squealy = Squealy(snippets=snippets, resources=resources)
-        self.squealy.add_engine(None, InMemorySqliteEngine())
+        self.squealy.add_engine('default', InMemorySqliteEngine())
 
     @unittest.skip
     def test_simple_formatter(self):

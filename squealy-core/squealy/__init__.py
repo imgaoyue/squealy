@@ -15,9 +15,6 @@ except ImportError:
     except ImportError:
         FrameworkHTTPException = Exception
 
-# The default engine name if one is not provided
-DEFAULT_ENGINE_NAME = '__default_engine__'
-
 class SquealyException(FrameworkHTTPException):
     code = status_code = 500
     description = default_detail = "Internal Server Error"
@@ -50,13 +47,13 @@ class Squealy:
 
     def add_engine(self, name, engine):
         'An Engine is responsible for querying an underlying SQL or NoSQL based data source'
-        if not name:
-            name = DEFAULT_ENGINE_NAME
+        if not name or not engine:
+            raise SquealyConfigException("name or engine is None")
         self.engines[name] = engine
     
     def get_engine(self, name):
         if not name:
-            name = DEFAULT_ENGINE_NAME
+            name = 'default'
         return self.engines[name]
     
     def _reload_jinja(self):

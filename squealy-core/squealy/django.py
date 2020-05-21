@@ -2,24 +2,28 @@ from django.db import connections
 from django.views import View
 from django.http import JsonResponse
 
-from squealy import Squealy, Engine
+from squealy import Squealy, Engine, Table
 
 class DjangoSquealy(Squealy):
-    def __init__(self, home_dir):
-        self.load_resources(home_dir)
-        for name, conn in connections.items():
-            self.add_engine(name, DjangoORMEngine(conn))
+    def __init__(self, snippets=None, resources=None, home_dir=None):
+        super(DjangoSquealy, self).__init__(snippets=snippets, resources=resources)
+        if home_dir:
+            self.load_resources(home_dir)
+        for conn_name in connections:
+            self.add_engine(conn_name, DjangoORMEngine(connections[conn_name]))
 
 class DjangoORMEngine(Engine):
     def __init__(self, conn):
         self.conn = conn
+        # Django uses %s for bind parameters, across all databases
+        self.param_style = 'format'
 
     def execute(self, query, bind_params):
-        with conn.cursor() as cursor:
+        with self.conn.cursor() as cursor:
             cursor.execute(query, bind_params)
             cols = [col[0] for col in cursor.description]
             rows = cursor.fetchall()
-        table = Table(columns=result.keys(), data=[r.values() for r in rows])
+        table = Table(columns=cols, data=rows)
         return table
 
     def execute_for_json(self, query, bind_params):
@@ -29,22 +33,11 @@ class DjangoORMEngine(Engine):
             row = cursor.fetchone()
             return row[0]
 
-    # TODO: Make this method django connection specific
-    def _identify_param_style(self):
-        dialect_str = str(type(engine.dialect).__module__).lower()
-        if 'sqlite' in dialect_str:
-            engine.param_style = 'qmark'
-        elif 'oracle' in dialect_str:
-            engine.param_style = 'numeric'
-        else:
-            engine.param_style = 'format'
-
 class SqlView(View):
-    def __init__(self, squealy, resource_id):
-        self.squealy = squealy
-        self.resource = squealy.get_resource(resource_id)
+    squealy = None
+    resource_id = None
 
-    def build_context(request, *args, **kwargs):
+    def build_context(self, request, *args, **kwargs):
         params = {}
         params.update(request.GET)
         params.update(kwargs)
@@ -56,5 +49,6 @@ class SqlView(View):
 
     def get(self, request, *args, **kwargs):
         context = self.build_context(request, *args, **kwargs)
-        data = self.resource.process(self.squealy, context)
+        resource = self.squealy.get_resource(self.resource_id)
+        data = resource.process(self.squealy, context)
         return JsonResponse(data)
