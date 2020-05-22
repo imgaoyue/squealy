@@ -1,1 +1,1 @@
-python -m unittest discover -s tests
+coverage run --source squealy -m unittest discover -s tests
