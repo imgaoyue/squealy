@@ -1,1 +1,1 @@
-from squealy import application
+from squealyapp import application

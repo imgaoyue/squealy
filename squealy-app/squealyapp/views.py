@@ -2,8 +2,7 @@ from flask import request, current_app
 from werkzeug.exceptions import HTTPException, Unauthorized, NotFound
 from functools import wraps
 import jwt
-from squealy import app, resources, config
-from .resources import Resource
+from squealy.flask import SqlView
 
 @app.after_request
 def enable_cors(response):
@@ -113,9 +112,3 @@ def view_logs():
     formatter = Formatter()
     logs = [formatter.format(l) for l in dev_logs]
     return {"logs": logs}
-
-# Dynamically register all Resources to the function process_resource
-for uuid, resource in resources.items():
-    path = resource.path
-    uuid = resource.uuid
-    app.add_url_rule(path, 'process_resource', process_resource, methods=["GET", "POST", "OPTIONS"], defaults={'resource_id': uuid})

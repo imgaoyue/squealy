@@ -1,0 +1,167 @@
+kind: snippet
+name: monthly_sales
+template: |
+    monthly_sales as (
+        SELECT 'jan' as month, 'north' as region, 15 as sales UNION ALL
+        SELECT 'jan' as month, 'south' as region, 36 as sales UNION ALL
+        SELECT 'feb' as month, 'north' as region, 29 as sales UNION ALL
+        SELECT 'feb' as month, 'south' as region, 78 as sales UNION ALL
+        SELECT 'mar' as month, 'north' as region, 33 as sales UNION ALL
+        SELECT 'mar' as month, 'south' as region, 65 as sales
+    )
+---
+
+kind: resource
+path: /charts/testapi
+datasource: sqlitedb
+summary: Monthly sales in millions of dollars
+authentication:
+    requires_authentication: false
+query: |
+    WITH {% include 'monthly_sales' %}
+    SELECT month, sum(sales) as sales
+    FROM monthly_sales 
+    GROUP BY month
+formatter: SeriesFormatter
+---
+
+kind: resource
+path: /charts/typed-parameters
+datasource: sqlitedb
+authentication:
+    requires_authentication: false
+parameters:
+    - name: month
+      kind: String
+      default_value: 'jan'
+      valid_values: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    - name: min_sales
+      kind: Number
+      default_value: 6500
+    - name: max_sales
+      kind: Number
+      default_value: 6600
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s WHERE s.month = {{params.month}} and s.sales > {{params.min_sales}} and s.sales < {{params.max_sales}}
+
+---
+
+kind: resource
+path: /charts/default-security
+datasource: sqlitedb
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s
+---
+
+kind: resource
+path: /charts/allow-anonymous
+datasource: sqlitedb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s
+formatter: SimpleFormatter
+---
+
+kind: resource
+path: /charts/only-show-data-from-users-region
+datasource: sqlitedb
+authentication:
+    requires_authentication: true
+query: |
+    SELECT month, sum(sales) as sales from (
+        SELECT 'jan' as month, 'north' as region, 10 as sales UNION ALL
+        SELECT 'feb' as month, 'north' as region, 20 as sales UNION ALL
+        SELECT 'jan' as month, 'south' as region, 30 as sales UNION ALL
+        SELECT 'feb' as month, 'south' as region, 40 as sales
+    ) s
+    WHERE s.region in {{user.regions | inclause }}
+    GROUP BY month
+    ORDER BY month desc
+---
+    
+kind: resource
+path: /charts/authorization-check-via-sql-query
+datasource: sqlitedb
+authentication:
+    requires_authentication: true
+authorization:
+    - id: sql_based_rule
+      query: |
+        SELECT 'x' WHERE 
+            ( {{user.username}} = 'sri' and {{params.region}} in ('north', 'south') )
+            OR
+            ( {{user.username}} = 'ram' and {{params.region}} in ('east', 'west') )
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales
+    ) s    
+---
+
+kind: resource
+path: /charts/mysql-testing
+datasource: mysqldb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s where s.month = {{params.month}}
+
+---
+
+kind: resource
+path: /charts/postgres-testing
+datasource: postgresdb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s where s.month = {{params.month}}
+
+---
+
+kind: resource
+path: /charts/mssql-testing
+datasource: mssqldb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales UNION ALL
+        SELECT 'feb' as month, 4567 as sales UNION ALL
+        SELECT 'mar' as month, 1907 as sales
+    ) s where s.month = {{params.month}}
+
+---
+
+kind: resource
+path: /charts/oracle-testing
+datasource: oracledb
+authentication:
+    requires_authentication: false
+query: |
+    SELECT month, sales from (
+        SELECT 'jan' as month, 6543 as sales FROM dual UNION ALL
+        SELECT 'feb' as month, 4567 as sales FROM dual UNION ALL
+        SELECT 'mar' as month, 1907 as sales FROM dual
+    ) s where s.month = {{params.month}}
+    
