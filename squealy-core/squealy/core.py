@@ -62,6 +62,9 @@ class Squealy:
     def get_jinja(self):
         return self.jinja
 
+    def get_resources(self):
+        return dict(self.resources)
+
     def get_resource(self, _id):
         return self.resources[_id]
 
@@ -106,12 +109,13 @@ class Squealy:
         queries = raw_resource.get('queries', None)
         datasource = raw_resource.get('datasource', None)
         formatter = self._load_formatter(raw_resource.get('formatter', 'JsonFormatter'))
-        
+        path = raw_resource['path']
+
         if not _id:
             raise SquealyConfigException("Resource is missing id " + raw_resource)
         if not queries:
             raise SquealyConfigException("Queries is empty or missing")
-        return Resource(_id=_id, queries=queries, datasource=datasource, formatter=formatter)
+        return Resource(_id=_id, queries=queries, datasource=datasource, formatter=formatter, path=path)
 
     def _load_formatter(self, raw_formatter):
         if not '.' in raw_formatter:
@@ -129,7 +133,7 @@ class Squealy:
         return m
 
 class Resource:
-    def __init__(self, _id, queries, datasource=None, formatter=None):
+    def __init__(self, _id, queries, datasource=None, formatter=None, path=None, **kwargs):
         if not _id:
             raise SquealyConfigException("Missing id field")
         if not queries:
@@ -139,6 +143,7 @@ class Resource:
         self.queries = Queries(queries)
         self.default_datasource = datasource
         self.formatter = formatter if formatter else JsonFormatter()
+        self.path = path
 
         if len(queries) > 1 and not self.formatter.supports_multi_queries():
             raise SquealyConfigException(type(self.formatter) + " does not support more than 1 query")
