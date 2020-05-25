@@ -1,3 +1,47 @@
+# Database Connection Settings
+# 
+# Each connection has two mandatory fields, an id and a url
+# The id is a unique name for the data source. You will use the id in your Resource definitions
+# The url is a sqlalchemy connection url for the data source. Each database will have a slightly different format
+# 
+# This file is processed as a jinja template at startup. This means you can use conditional logic and placeholders easily
+# You can solve a lot of use cases with jinja - different data sources for prod v/s qa, 
+# read passwords at runtime from environment variables and so on
+
+datasources:
+  # Postgres Connection String
+  - id: postgresdb
+    url: "postgresql://postgres:{{env.PG_PASSWORD}}@adventureworks-postgres"
+
+  # MySQL connection String
+  - id: mysqldb
+    url: "mysql://squealy:{{env.MYSQL_PASSWORD}}@mysql-57/squealy"
+
+  # Microsoft SQL Server connection string
+  # mssql+pymssql://user:password@hostname:port
+  - id: mssqldb
+    url: "mssql+pymssql://sa:{{ env.MSSQL_PASSWORD }}@mssql-2017:1433"
+
+  # Oracle connection string
+  # oracle+cx_oracle://username:password@host:port/sid
+  # 
+  # Note that you must manually copy oracle drivers to the docker image
+  # See drivers/README.md for more information
+  - id: oracledb
+    url: "oracle+cx_oracle://system:{{ env.ORACLE_PASSWORD }}@oracle-xe-11g:1521/xe"
+
+  # In memory sqlite database
+  - id: sqlitedb
+    url: "sqlite:///:memory:"
+
+  # Sqlite from a file
+  # Note that there are 3 slashes after sqlite. 
+  # - If the file is absolute path, then there will be an additional slash (making it 4 slashes)
+  # - If it is a relative path, then there will be just 3 slashes
+  - id: sqlitedbfile
+    url: "sqlite:////path/to/file"
+
+
 # Cross Origin Resource Sharing, or CORS
 # ======================================
 # CORS headers allow web applications hosted on different origin to make API calls to Squealy.
@@ -27,12 +71,12 @@
 # Authentication
 # ==============
 # Configure how requests are authenticated
-# Currently, only JWT is supported. Only 2 algorithms - HS256 and RS256 are supported for now.
+# Currently, only JWT (HS256 and RS256) are supported.
 # When algorithm = RS256, one of publicKey or publicKeyPath is expected. 
 # - publicKey contains the PEM encoded public key as plain text, directly in the YAML file
 # - publicKeyPath is either an absolute or relative path to a file. 
 #   Relative paths are relative to SQUEALY_BASE_DIR
-authentication:
-  jwt:
-    algorithm: HS256
-    secret: 'secret'
+# authentication:
+#   jwt:
+#     algorithm: HS256
+#     secret: 'secret'

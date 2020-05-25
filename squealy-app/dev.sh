@@ -1,0 +1,1 @@
+SQUEALY_CONFIG_FILE=squealy-home/config.yml FLASK_APP=squealyapp FLASK_ENV=development flask run

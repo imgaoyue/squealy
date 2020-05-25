@@ -1,33 +1,198 @@
-id: question_object
+id: monthly_sales
 type: snippet
 template: |
-  SELECT q.id, q.title from (
-    SELECT 1 as id, 'How to install squealy?' as title UNION ALL
-    SELECT 2 as id, 'Can Squealy be used in Java?' as title UNION ALL
-    SELECT 3 as id, 'Does Squealy support Oracle?' as title
-  ) q
+    monthly_sales as (
+        SELECT 'jan' as month, 'north' as region, 15 as sales UNION ALL
+        SELECT 'jan' as month, 'south' as region, 36 as sales UNION ALL
+        SELECT 'feb' as month, 'north' as region, 29 as sales UNION ALL
+        SELECT 'feb' as month, 'south' as region, 78 as sales UNION ALL
+        SELECT 'mar' as month, 'north' as region, 33 as sales UNION ALL
+        SELECT 'mar' as month, 'south' as region, 65 as sales
+    )
 ---
-    
-id: questions
+
+id: testapi
 type: resource
-path: /squealy/questions
+path: /charts/testapi
+datasource: sqlitedb
+summary: Monthly sales in millions of dollars
+authentication:
+    requires_authentication: false
 queries:
   - isRoot: true
-    contextKey: questions
     queryForList: |
-      {% include 'question_object' %}
-      WHERE q.id in (1,2)
-  - key: comments
-    merge:
-      parent: id
-      child: qid
+        WITH {% include 'monthly_sales' %}
+        SELECT month, sum(sales) as sales
+        FROM monthly_sales 
+        GROUP BY month
+formatter: SeriesFormatter
+---
+
+
+id: typed-parameters
+type: resource
+path: /charts/typed-parameters
+datasource: sqlitedb
+authentication:
+    requires_authentication: false
+parameters:
+    - name: month
+      type: String
+      default_value: 'jan'
+      valid_values: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    - name: min_sales
+      type: Number
+      default_value: 6500
+    - name: max_sales
+      type: Number
+      default_value: 6600
+queries:
+  - isRoot: true
     queryForList: |
-      SELECT c.qid as qid, c.comment FROM (
-        SELECT 1 as qid, "What OS?" as comment UNION ALL
-        SELECT 1 as qid, "Ubuntu 18.04" as comment UNION ALL
-        SELECT 1 as qid, "Okay - pip install squealy" as comment UNION ALL
-        SELECT 2 as qid, "No, only python for now" as comment UNION ALL
-        SELECT 2 as qid, "You can run in docker and call over http from java" as comment UNION ALL
-        SELECT 3 as qid, "Comment on unrelated question" as comment UNION ALL
-        SELECT 4 as qid, "Comment on non-existent question" as comment
-      ) c WHERE c.qid in {{ questions.id | inclause }}
+        SELECT month, sales from (
+            SELECT 'jan' as month, 6543 as sales UNION ALL
+            SELECT 'feb' as month, 4567 as sales UNION ALL
+            SELECT 'mar' as month, 1907 as sales
+        ) s WHERE s.month = {{params.month}} and s.sales > {{params.min_sales}} and s.sales < {{params.max_sales}}
+
+---
+
+id: default-security
+type: resource
+path: /charts/default-security
+datasource: sqlitedb
+queries:
+  - isRoot: true
+    queryForList: |
+        SELECT month, sales from (
+            SELECT 'jan' as month, 6543 as sales UNION ALL
+            SELECT 'feb' as month, 4567 as sales UNION ALL
+            SELECT 'mar' as month, 1907 as sales
+        ) s
+---
+
+id: allow-anonymous
+type: resource
+path: /charts/allow-anonymous
+datasource: sqlitedb
+authentication:
+    requires_authentication: false
+queries:
+  - isRoot: true
+    queryForList: |
+        SELECT month, sales from (
+            SELECT 'jan' as month, 6543 as sales UNION ALL
+            SELECT 'feb' as month, 4567 as sales UNION ALL
+            SELECT 'mar' as month, 1907 as sales
+        ) s
+formatter: SimpleFormatter
+---
+
+id: only-show-data-from-users-region
+type: resource
+path: /charts/only-show-data-from-users-region
+datasource: sqlitedb
+authentication:
+    requires_authentication: true
+queries:
+  - isRoot: true
+    queryForList: |
+        SELECT month, sum(sales) as sales from (
+            SELECT 'jan' as month, 'north' as region, 10 as sales UNION ALL
+            SELECT 'feb' as month, 'north' as region, 20 as sales UNION ALL
+            SELECT 'jan' as month, 'south' as region, 30 as sales UNION ALL
+            SELECT 'feb' as month, 'south' as region, 40 as sales
+        ) s
+        WHERE s.region in {{user.regions | inclause }}
+        GROUP BY month
+        ORDER BY month desc
+---
+
+id: authorization-check-via-sql-query
+type: resource
+path: /charts/authorization-check-via-sql-query
+datasource: sqlitedb
+authentication:
+    requires_authentication: true
+authorization:
+    - id: sql_based_rule
+      query: |
+        SELECT 'x' WHERE 
+            ( {{user.username}} = 'sri' and {{params.region}} in ('north', 'south') )
+            OR
+            ( {{user.username}} = 'ram' and {{params.region}} in ('east', 'west') )
+queries:
+  - isRoot: true
+    queryForList: |
+        SELECT month, sales from (
+            SELECT 'jan' as month, 6543 as sales UNION ALL
+            SELECT 'feb' as month, 4567 as sales
+        ) s
+---
+
+id: mysql-testing
+type: resource
+path: /charts/mysql-testing
+datasource: mysqldb
+authentication:
+    requires_authentication: false
+queries:
+  - isRoot: true
+    queryForList: |
+        SELECT month, sales from (
+            SELECT 'jan' as month, 6543 as sales UNION ALL
+            SELECT 'feb' as month, 4567 as sales UNION ALL
+            SELECT 'mar' as month, 1907 as sales
+        ) s where s.month = {{params.month}}
+
+---
+
+id: postgres-testing
+type: resource
+path: /charts/postgres-testing
+datasource: postgresdb
+authentication:
+    requires_authentication: false
+queries:
+  - isRoot: true
+    queryForList: |
+        SELECT month, sales from (
+            SELECT 'jan' as month, 6543 as sales UNION ALL
+            SELECT 'feb' as month, 4567 as sales UNION ALL
+            SELECT 'mar' as month, 1907 as sales
+        ) s where s.month = {{params.month}}
+
+---
+
+id: mssql-testing
+type: resource
+path: /charts/mssql-testing
+datasource: mssqldb
+authentication:
+    requires_authentication: false
+queries:
+  - isRoot: true
+    queryForList: |
+        SELECT month, sales from (
+            SELECT 'jan' as month, 6543 as sales UNION ALL
+            SELECT 'feb' as month, 4567 as sales UNION ALL
+            SELECT 'mar' as month, 1907 as sales
+        ) s where s.month = {{params.month}}
+
+---
+
+id: oracle-testing
+type: resource
+path: /charts/oracle-testing
+datasource: oracledb
+authentication:
+    requires_authentication: false
+queries:
+  - isRoot: true
+    queryForList: |
+        SELECT month, sales from (
+            SELECT 'jan' as month, 6543 as sales FROM dual UNION ALL
+            SELECT 'feb' as month, 4567 as sales FROM dual UNION ALL
+            SELECT 'mar' as month, 1907 as sales FROM dual
+        ) s where s.month = {{params.month}}
+    

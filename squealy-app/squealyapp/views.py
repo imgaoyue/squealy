@@ -104,11 +104,3 @@ def _load_parameters(resource):
         
         parameters.append(doc)
     return parameters
-
-@app.route('/_logs')
-def view_logs():
-    from squealy import dev_logs
-    from logging import Formatter
-    formatter = Formatter()
-    logs = [formatter.format(l) for l in dev_logs]
-    return {"logs": logs}

@@ -1,1 +1,1 @@
-from squealyapp import application
+from squealyapp import wsgi_app as application
