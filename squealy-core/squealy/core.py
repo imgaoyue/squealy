@@ -88,10 +88,10 @@ class Squealy:
                 if not _id:
                     raise SquealyConfigException("Snippet is missing id")
                 if not template:
-                    raise SquealyConfigException(f"Snippet {_id} is missing template")
+                    raise SquealyConfigException("Snippet " + _id + " is missing template")
                 snippets[_id] = template
             else:
-                raise SquealyConfigException(f"Unknown object of kind = {kind} in {ymlfile}")
+                raise SquealyConfigException("Unknown object of type = " + _type + " in file " + ymlfile)
         
         self.resources.update(resources)
         self.snippets.update(snippets)
@@ -119,7 +119,7 @@ class Squealy:
 
     def _load_formatter(self, raw_formatter):
         if not '.' in raw_formatter:
-            raw_formatter = f"squealy.formatters.{raw_formatter}"
+            raw_formatter = "squealy.formatters." + raw_formatter
         kls = self._get_class(raw_formatter)
         return kls()
 
