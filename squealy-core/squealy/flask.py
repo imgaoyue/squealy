@@ -1,4 +1,4 @@
-from flask import request, current_app
+from flask import request, current_app, jsonify
 from flask.views import MethodView
 from sqlalchemy import create_engine
 from squealy import Squealy, Engine, Table, SquealyConfigException
@@ -77,4 +77,4 @@ class SqlView(MethodView):
         
         context = self.build_context(request, *args, **kwargs)
         data = self.resource.process(squealy, context)
-        return data
+        return jsonify(data)

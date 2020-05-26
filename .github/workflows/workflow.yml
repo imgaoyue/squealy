@@ -6,6 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: squealy-core unit tests
+        working-directory: squealy-core
+        run: pip install requirements.test.txt & ./run_tests
       - uses: actions/cache@v1
         id: cache-oracle-driver
         with:

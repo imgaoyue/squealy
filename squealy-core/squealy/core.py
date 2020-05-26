@@ -109,7 +109,7 @@ class Squealy:
         queries = raw_resource.get('queries', None)
         datasource = raw_resource.get('datasource', None)
         formatter = self._load_formatter(raw_resource.get('formatter', 'JsonFormatter'))
-        path = raw_resource['path']
+        path = raw_resource.get('path', None)
 
         if not _id:
             raise SquealyConfigException("Resource is missing id " + raw_resource)
