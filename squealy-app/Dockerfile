@@ -55,7 +55,7 @@ COPY docker-entrypoint.sh .
 # Copy the remaining code
 # Avoid copying the current working directory, 
 # as that will have unnecessary files
-COPY squealy squealy
+COPY squealyapp squealyapp
 
 # Switch to gunicorn user
 # This makes our container a lot more secure
@@ -66,7 +66,7 @@ USER gunicorn
 ENV LD_LIBRARY_PATH /code/drivers/instantclient_19_6/
 
 # Configurations inspired from https://www.caktusgroup.com/blog/2017/03/14/production-ready-dockerfile-your-python-django-app/
-ENV UWSGI_WSGI_FILE=squealy/wsgi.py
+ENV UWSGI_WSGI_FILE=squealyapp/wsgi.py
 ENV UWSGI_HTTP=:5000 UWSGI_MASTER=1 UWSGI_HTTP_AUTO_CHUNKED=1 UWSGI_HTTP_KEEPALIVE=1 UWSGI_LAZY_APPS=1 UWSGI_WSGI_ENV_BEHAVIOR=holy
 ENV UWSGI_WORKERS=2 UWSGI_THREADS=4
 

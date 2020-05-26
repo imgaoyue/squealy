@@ -3,7 +3,7 @@ set -e
 
 if [ "$1" = 'development' ]; then
     export ENV FLASK_RUN_HOST="0.0.0.0"
-    export ENV FLASK_APP="squealy"
+    export ENV FLASK_APP="squealyapp"
     export ENV FLASK_ENV="development"
 
     # Make a colon (:) separated list of *.yml files under SQUEALY_BASE_DIR

@@ -52,7 +52,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY docker-entrypoint.sh .
 
-ENV SQUEALY_BASE_DIR "/code/squealy-home"
+ENV SQUEALY_CONFIG_FILE "/code/squealy-home/config.yml"
 
 # Switch to gunicorn user
 # This is to ensure parity with production image

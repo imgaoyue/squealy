@@ -15,7 +15,7 @@ services:
     - "./drivers/instantclient_19_6/:/code/drivers/instantclient_19_6/"
     environment:
       UWSGI_HTTPS: "0.0.0.0:8443,/code/squealy-home/squealy.crt,/code/squealy-home/squealy.key"
-      SQUEALY_BASE_DIR: "/code/squealy-home"
+      SQUEALY_CONFIG_FILE: "/code/squealy-home/config.yml"
       PG_PASSWORD: squealypg
       MYSQL_PASSWORD: squealy1234
       MSSQL_PASSWORD: "yourStrong(@!)Password"

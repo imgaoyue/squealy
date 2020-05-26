@@ -1,5 +1,4 @@
-# Use locally built squealy-core module
-../squealy-core
+squealy==0.2.0
 
 # Flask framework for writing rest apis
 Flask==1.1.1
