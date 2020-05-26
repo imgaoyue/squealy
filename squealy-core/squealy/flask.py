@@ -28,8 +28,8 @@ class FlaskSquealy(Squealy):
 class SqlAlchemyEngine(Engine):
     def __init__(self, engine):
         self.engine = engine
-        self.param_style = 'qmark'
-    
+        self._set_param_style()
+        
     def execute(self, query, bind_params):
         with self.engine.connect() as conn:
             result = conn.execute(query, bind_params)
@@ -42,6 +42,15 @@ class SqlAlchemyEngine(Engine):
         with self.engine.connect() as conn:
             result = conn.execute(finalquery, bindparams)
             return result.fetchone()[0]
+
+    def _set_param_style(self):
+        dialect_str = str(type(self.engine.dialect).__module__).lower()
+        if 'sqlite' in dialect_str:
+            self.param_style = 'qmark'
+        elif 'oracle' in dialect_str:
+            self.param_style = 'numeric'
+        else:
+            self.param_style = 'format'            
 
 class SqlView(MethodView):
     def __init__(self, resource_id=None, resource=None):
