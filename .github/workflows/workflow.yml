@@ -16,6 +16,10 @@ jobs:
       - name: Install dependencies
         working-directory: squealy-core
         run: |
+          python -VV
+          python3 -VV
+          pip -VV
+          pip3 -VV
           python -m pip install --upgrade pip
           pip install -r requirements.test.txt
       - name: Unit Tests
