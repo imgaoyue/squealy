@@ -2,7 +2,7 @@ id: monthly_sales
 type: snippet
 template: |
     monthly_sales as (
-        SELECT 'jan' as month, 'north' as region, 15 as sales UNION ALL
+        SELECT 'jan' as month, 'north' as region, 19 as sales UNION ALL
         SELECT 'jan' as month, 'south' as region, 36 as sales UNION ALL
         SELECT 'feb' as month, 'north' as region, 29 as sales UNION ALL
         SELECT 'feb' as month, 'south' as region, 78 as sales UNION ALL

@@ -1,0 +1,119 @@
+id: recent-questions
+type: resource
+path: /se/recent-questions
+datasource: dba.se.com
+queries:
+  - isRoot: true
+    contextKey: questions
+    queryForList: |
+        {% set POST_TYPE_QUESTION = 1 %}
+        SELECT q.id, q.title, regexp_split_to_array(substring(q.tags, 2, char_length(q.tags) - 2), '><') as tags,
+            a.id as "askedBy.id", a.displayname as "askedBy.displayName", a.reputation as "askedBy.reputation",
+            e.id as "editor.id", e.displayname as "editor.displayName", e.reputation as "editor.reputation"
+        FROM posts q JOIN users a on q.owneruserid = a.id JOIN users e on q.lasteditoruserid = e.id
+        WHERE q.posttypeid = {{ POST_TYPE_QUESTION }}
+        {% if params.id %} AND q.id = {{ params.id }} {% endif %}
+        ORDER BY q.creationdate DESC
+        LIMIT 10
+  - key: comments
+    queryForList: |
+      SELECT c.id, c.postid as qid, c.text, c.score, 
+        a.id as "author.id", a.displayname as "author.displayName", a.reputation as "author.reputation"
+      FROM comments c JOIN users a on c.userid = a.id
+      WHERE c.postid in {{ questions.id | inclause }}
+      ORDER by c.creationdate DESC
+    merge:
+        parent: id
+        child: qid
+  - key: answers
+    queryForList: |
+        {% set POST_TYPE_ANSWER = 2 %}
+        SELECT a.id, a.parentid as qid, a.body, 
+          u.id as "author.id", u.displayname as "author.displayName", u.reputation as "author.reputation"
+        FROM posts a JOIN users u on a.owneruserid = u.id
+        WHERE a.posttypeid = {{ POST_TYPE_ANSWER }}
+        and a.parentid in {{ questions.id | inclause }}
+        ORDER BY a.score DESC
+    merge:
+        parent: id
+        child: qid  
+
+---
+
+id: usertags.sql
+type: snippet
+template: |
+    usertags as (
+        SELECT ut.userid, ut.tag, count(*) as count FROM (
+            SELECT q.owneruserid as userid, regexp_split_to_table(substring(q.tags, 2, char_length(q.tags) - 2), '><') as tag
+            FROM posts q
+            WHERE q.posttypeid = 1
+            UNION ALL
+            SELECT a.owneruserid as userid, regexp_split_to_table(substring(q.tags, 2, char_length(q.tags) - 2), '><') as tag
+            FROM posts q JOIN posts a on q.id = a.parentid
+            WHERE q.posttypeid = 1 and a.posttypeid = 2
+        ) ut 
+        GROUP by ut.userid, ut.tag
+    )
+---
+
+id: profile
+type: resource
+path: /se/profile
+datasource: dba.se.com
+queries:
+  - isRoot: true
+    contextKey: profile
+    queryForObject: |
+      WITH {% include 'usertags.sql' %}
+      SELECT u.id, u.reputation, u.displayname as displayName, u.lastaccessdate as lastAccesssDate,
+        u.websiteurl as websiteUrl, u.location, 
+        (SELECT COUNT(*) FROM usertags ut where ut.userid = u.id) as numberOfTags
+      FROM users u
+      WHERE u.id = {{ params.id }}
+  - key: topTags
+    queryForList: |
+      WITH {% include 'usertags.sql' %}
+      SELECT ut.tag, ut.count
+      FROM usertags ut
+      WHERE ut.userid = {{ profile.id }}
+      ORDER BY ut.count DESC
+      LIMIT 5
+  - key: topPosts
+    queryForList: |
+      SELECT CASE WHEN p.posttypeid = 1 THEN 'Question' WHEN p.posttypeid = 2 THEN 'Answer' ELSE 'Unknown' END as postType,
+      p.id, p.score, coalesce(p.title, q.title) as title, p.creationdate as "creationDate"
+      FROM posts p left outer join posts q on p.parentid = q.id
+      WHERE p.owneruserid = {{ profile.id }}
+      AND p.posttypeid in (1, 2)
+      ORDER BY p.score DESC
+      LIMIT 10
+
+---
+
+id: users-by-reputation
+type: resource
+path: /se/users-by-reputation
+datasource: dba.se.com
+queries:
+  - isRoot: true
+    contextKey: users
+    queryForList: |
+      SELECT u.id, u.displayname as "displayName", u.reputation, u.location,
+      u.websiteurl as "websiteUrl"
+      FROM users u
+      ORDER BY u.reputation DESC
+      LIMIT 10
+  - key: recentBadges
+    queryForList: |
+      SELECT u.id as "userid", tb.name as badge, tb.date as "awardedOn"
+      FROM USERS u JOIN LATERAL (
+          SELECT b.name, b.date FROM badges b
+          WHERE b.userid = u.id 
+          ORDER BY b.date DESC
+          LIMIT 3
+      ) tb on true
+      WHERE u.id in {{ users.id | inclause }}
+    merge:
+        parent: id
+        child: userid

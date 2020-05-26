@@ -1,8 +1,9 @@
 # Host names and passwords must be in sync with docker-compose.ci.yml
 datasources:
   - id: postgresdb
-    password: 
     url: "postgresql://postgres:{{env.PG_PASSWORD}}@adventureworks-postgres"
+  - id: dba.se.com
+    url: "postgresql://stackexchange:stackexchange@localhost"
   - id: mysqldb
     url: "mysql://squealy:{{env.MYSQL_PASSWORD}}@mysql-57/squealy"
   - id: sqlitedb
