@@ -8,7 +8,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: squealy-core unit tests
         working-directory: squealy-core
-        run: pip install requirements.test.txt & ./run_tests
+        run: pip install -r requirements.test.txt & ./run_tests
       - uses: actions/cache@v1
         id: cache-oracle-driver
         with:
