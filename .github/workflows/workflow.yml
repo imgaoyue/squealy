@@ -9,13 +9,15 @@ jobs:
       - uses: actions/cache@v1
         id: cache-oracle-driver
         with:
-          path: drivers/instantclient_19_6
-          key: instantclient_19_6-cache-buster-0
+          path: squealy-app/drivers/instantclient_19_6
+          key: instantclient_19_6-cache-buster-1
       - name: Download Oracle Instantclient
         if: steps.cache-oracle-driver.outputs.cache-hit != 'true'
         run: curl -o instantclient.zip https://download.oracle.com/otn_software/linux/instantclient/19600/instantclient-basic-linux.x64-19.6.0.0.0dbru.zip && unzip instantclient.zip -d drivers
+        working-directory: squealy-app
       - name: Run Integration Tests using docker-compose
         run: docker-compose -f docker-compose.ci.yml up --abort-on-container-exit --exit-code-from tests
+        working-directory: squealy-app
   publish:
     name: Publish Docker Image
     needs: tests
@@ -26,6 +28,7 @@ jobs:
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: squealy/runtime
+          workdir: squealy-app
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           snapshot: true
