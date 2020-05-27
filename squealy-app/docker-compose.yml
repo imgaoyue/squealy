@@ -8,3 +8,7 @@ services:
     - "5000:5000"
     volumes: 
     - "./:/code"
+  dba.se.com:
+    image: squealy/dba.se.com
+    environment: 
+      POSTGRES_PASSWORD: stackexchange

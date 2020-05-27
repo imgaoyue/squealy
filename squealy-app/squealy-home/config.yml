@@ -2,8 +2,10 @@
 datasources:
   - id: postgresdb
     url: "postgresql://postgres:{{env.PG_PASSWORD}}@adventureworks-postgres"
+  - id: default
+    url: "postgresql://stackexchange:stackexchange@dba.se.com"
   - id: dba.se.com
-    url: "postgresql://stackexchange:stackexchange@localhost"
+    url: "postgresql://stackexchange:{{env.POSTGRES_PASSWORD}}@dba.se.com"
   - id: mysqldb
     url: "mysql://squealy:{{env.MYSQL_PASSWORD}}@mysql-57/squealy"
   - id: sqlitedb
