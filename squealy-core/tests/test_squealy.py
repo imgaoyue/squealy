@@ -17,6 +17,27 @@ class InMemorySqliteEngine(Engine):
         return Table(cols, rows)
 
 
+class LoaderTests(unittest.TestCase):
+    def test_load_from_memory(self):
+        squealy = Squealy()
+        objects = [
+            {
+                "id": "in-memory-resource",
+                "type": "resource",
+                "queries": [{
+                    "isRoot": True,
+                    "queryForList": "SELECT 1 as id, 'sri' as name UNION ALL SELECT 2 as id, 'anshu' as name"
+                }]
+            }
+        ]
+        squealy.load_resources(objects=objects)
+        squealy.add_engine('default', InMemorySqliteEngine())
+        self.assertEqual(len(squealy.get_resources()), 1)
+        resource = squealy.get_resource("in-memory-resource")
+        data = resource.process(squealy, {"params": {}})
+        self.assertEqual(data, {'data': [{'id': 1, 'name': 'sri'}, {'id': 2, 'name': 'anshu'}]})
+
+
 class ResourceTests(unittest.TestCase):
     def setUp(self):
         self.squealy = Squealy(resources=[])

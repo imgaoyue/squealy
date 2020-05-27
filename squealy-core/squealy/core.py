@@ -5,6 +5,7 @@ import os
 import yaml
 from pathlib import Path
 from .formatters import JsonFormatter
+from itertools import chain
 
 # Try to extend the underyling framework's (django or flask) exception
 try:
@@ -68,12 +69,26 @@ class Squealy:
     def get_resource(self, _id):
         return self.resources[_id]
 
-    def load_resources(self, base_dir):
-        'Loads resources from yaml files in a directory'
+    def load_resources(self, base_dir=None, objects=None):
+        '''Loads resources, either from yaml files in a directory or from python objects
+          
+           objects, if provided, must be a list of dictionary objects
+        '''
         resources = {}
         snippets = {}
 
-        for rawobj in self._object_iter(base_dir):
+        if base_dir:
+            objects_from_dir = self._object_iter(base_dir)
+        else:
+            objects_from_dir = iter([])
+        
+        if objects:
+            objects_from_memory = iter(objects)
+        else:
+            objects_from_memory = iter([])
+
+        combined = chain(objects_from_dir, objects_from_memory)
+        for rawobj in combined:
             if not rawobj:
                 continue
             _type = rawobj.get('type', None)
