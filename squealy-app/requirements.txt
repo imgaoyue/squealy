@@ -1,4 +1,4 @@
-squealy==0.2.0
+squealy==0.2.1
 
 # Flask framework for writing rest apis
 Flask==1.1.1

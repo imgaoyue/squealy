@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/hashedin/squealy",
     packages=setuptools.find_packages(),
-    install_requires=['jinjasql>=0.1.7', 'PyYAML'],
+    install_requires=['jinjasql>=0.1.8', 'PyYAML'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
