@@ -7,6 +7,8 @@ from pathlib import Path
 from .formatters import JsonFormatter
 from itertools import chain
 
+logger = logging.getLogger(__name__)
+
 # Try to extend the underyling framework's (django or flask) exception
 try:
     from rest_framework.exceptions import APIException as FrameworkHTTPException
@@ -76,18 +78,12 @@ class Squealy:
         '''
         resources = {}
         snippets = {}
+        empty_iter = iter([])
 
-        if base_dir:
-            objects_from_dir = self._object_iter(base_dir)
-        else:
-            objects_from_dir = iter([])
-        
-        if objects:
-            objects_from_memory = iter(objects)
-        else:
-            objects_from_memory = iter([])
-
+        objects_from_dir = self._object_iter(base_dir) if base_dir else empty_iter
+        objects_from_memory = iter(objects) if objects else empty_iter
         combined = chain(objects_from_dir, objects_from_memory)
+
         for rawobj in combined:
             if not rawobj:
                 continue
@@ -164,23 +160,30 @@ class Resource:
             raise SquealyConfigException(type(self.formatter) + " does not support more than 1 query")
         
     def process(self, squealy, initial_context):
+        logger.debug("Processing request for resource %s with initial_context %s", self.id, initial_context)
         jinja = squealy.get_jinja()
         context = initial_context
         results = None
         for query in self.queries:
             engine = squealy.get_engine(query.datasource or self.default_datasource)
+            logger.debug("Using engine %s to process query template %s", engine, query.query)
             finalquery, bindparams = jinja.prepare_query(query.query, context, engine.param_style)
+            logger.info("Final Query is %s", finalquery)
+            logger.info("Bind Parameters are %s", bindparams)
             table = engine.execute(finalquery, bindparams)
-            
             if query.is_object:
                 if len(table) == 0 and not query.is_optional:
                     raise SquealyException("Expected a single row, found none. If 0 rows are expected, you can set isOptional to true")
                 if len(table) > 1:
                     raise SquealyException("Expected a single row, found " + len(table) + " rows")
             
-            # Lets subsequent queries access data from the current query
+            # Let subsequent queries access data from the current query
             if query.context_key:
+                logger.debug("Binding result to context key %s", query.context_key)
                 context[query.context_key] = TableProxy(table, 'list' if query.is_list else 'object')
+            else:
+                logger.debug("context_key is not defined. " +
+                    "Results of this query will not be available to subsequent queries.")
             results = self.formatter.format(results, query, table)
         return results
         
