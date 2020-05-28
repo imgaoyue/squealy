@@ -1,5 +1,11 @@
-<html>
+<!doctype html>
+<html lang="en">
   <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <script>
       function run() {
         console.log("Run method called");
@@ -13,18 +19,19 @@
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(request, 4)
+            body: JSON.stringify(request)
         })
         .then(response => response.json())
-        .then(data => response_area.value = JSON.stringify(data))
+        .then(data => response_area.value = JSON.stringify(data["output"], null, 2))
       }
     </script>
   </head>
-  <body>
-    <div class="container">
-      <button onclick="run()">Run</button>
-      <div class="resource">
-        <textarea name="resource" cols="100" rows="40">
+  <body style="font-size: small;">
+    <div class="container-fluid">
+      <div class="row"><div class="col-sm"></div><button onclick="run()">Run</button></div></div>
+      <div class="row">
+      <div class="col-sm">
+        <textarea name="resource" rows="35" style="min-width: 99%">
 {% raw %}
 id: questions-by-tag
 type: resource
@@ -50,9 +57,7 @@ queries:
         child: postid
 {% endraw %}
         </textarea>
-      </div>
-      <div class="context">
-        <textarea name="context" cols="100" rows="20">
+        <textarea name="context" rows="12" style="min-width: 99%">
 {% raw %}
 {
   "params": {
@@ -62,9 +67,10 @@ queries:
 {% endraw %}
         </textarea>
       </div>
-      <div class="response">
-        <textarea name="response" readonly cols="100" rows="60" ></textarea>
+      <div class="output col-sm">
+        <textarea name="response" rows="48" readonly style="min-width: 99%" ></textarea>
       </div>
+    </div>
     </div>
   </body>
 </html>
