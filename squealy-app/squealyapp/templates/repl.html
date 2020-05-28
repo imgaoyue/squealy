@@ -1,0 +1,70 @@
+<html>
+  <head>
+    <script>
+      function run() {
+        console.log("Run method called");
+        resource = document.getElementsByName("resource")[0].value;
+        context = document.getElementsByName("context")[0].value;
+        response_area = document.getElementsByName("response")[0];
+
+        request = {"resource": resource, "context": context};
+        fetch("/_repl", {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(request, 4)
+        })
+        .then(response => response.json())
+        .then(data => response_area.value = JSON.stringify(data))
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <button onclick="run()">Run</button>
+      <div class="resource">
+        <textarea name="resource" cols="100" rows="40">
+{% raw %}
+id: questions-by-tag
+type: resource
+path: /questions-by-tag
+queries:
+  - isRoot: true
+    contextKey: questions
+    queryForList: |
+        SELECT q.id, q.title, q.tags, q.score, q.tags
+        FROM posts q
+        WHERE q.posttypeid = 1 
+        {% if params.tag %} AND q.tags like {{ '%<' ~ params.tag ~ '>%'}} {% endif %}
+        ORDER BY q.creationdate DESC
+        LIMIT 10
+  - key: comments
+    queryForList: |
+        SELECT c.id, c.postid, c.text, c.creationdate, c.score
+        FROM comments c
+        WHERE c.postid in {{ questions.id | inclause }}
+        ORDER by c.creationdate ASC
+    merge:
+        parent: id
+        child: postid
+{% endraw %}
+        </textarea>
+      </div>
+      <div class="context">
+        <textarea name="context" cols="100" rows="20">
+{% raw %}
+{
+  "params": {
+     "tag": "postgresql"
+  }
+}
+{% endraw %}
+        </textarea>
+      </div>
+      <div class="response">
+        <textarea name="response" readonly cols="100" rows="60" ></textarea>
+      </div>
+    </div>
+  </body>
+</html>

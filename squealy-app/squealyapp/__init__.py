@@ -99,5 +99,5 @@ app, wsgi_app = bootstrap()
 # Flask documentation has a note on why this is acceptable
 # See https://flask.palletsprojects.com/en/1.1.x/patterns/packages/
 
-# import squealy.views
+import squealyapp.views
 

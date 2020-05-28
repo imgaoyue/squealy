@@ -1,17 +1,50 @@
-from flask import request, current_app
+import json
+from flask import request, current_app, render_template
 from werkzeug.exceptions import HTTPException, Unauthorized, NotFound
 from functools import wraps
 import jwt
 from squealy.flask import SqlView
+import yaml
+from squealyapp import app, SquealyConfigException
 
-@app.after_request
-def enable_cors(response):
-    if config.is_cors_enabled:
-        response.headers['Access-Control-Allow-Origin'] = config.cors_allowed_origins
-        response.headers['Access-Control-Allow-Methods'] = config.cors_allowed_methods
-        response.headers['Access-Control-Allow-Headers'] = config.cors_allowed_headers
+@app.route("/", methods=["GET"])
+def repl_ui():
+    return render_template("repl.html")
 
+@app.route("/_repl", methods=["POST"])
+def repl():
+    squealy = current_app.extensions['squealy']
+    resource_as_str = request.json['resource']
+    raw_objects = yaml.safe_load_all(resource_as_str)
+    resource_id = _find_resource_id(raw_objects)
+    squealy.load_resources(objects=raw_objects)
+    context = request.json['context']
+    context = json.loads(context)
+    resource = squealy.get_resource(resource_id)
+    output = resource.process(squealy, context)
+    response = {"output": output, "logs": []}
     return response
+
+def _find_resource_id(raw_objects):
+    resources = [r for r in raw_objects if "type" in r and r["type"] == 'resource']
+    if not resources:
+        raise SquealyConfigException("No resource defined")
+    if len(resources) > 1:
+        raise SquealyConfigException("Multiple resources found, only 1 resource is supported in repl")
+    resource = resources[0]
+    if "id" not in resource:
+        raise SquealyConfigException('Resource does not have an id')
+    return resource["id"]
+    
+
+# #@app.after_request
+# def enable_cors(response):
+#     if config.is_cors_enabled:
+#         response.headers['Access-Control-Allow-Origin'] = config.cors_allowed_origins
+#         response.headers['Access-Control-Allow-Methods'] = config.cors_allowed_methods
+#         response.headers['Access-Control-Allow-Headers'] = config.cors_allowed_headers
+
+#     return response
 
 def login_required(f):
     @wraps(f)
