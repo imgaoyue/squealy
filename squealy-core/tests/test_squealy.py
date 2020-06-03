@@ -19,21 +19,12 @@ class InMemorySqliteEngine(Engine):
 
 class LoaderTests(unittest.TestCase):
     def test_load_from_memory(self):
+        queries = [{
+            "queryForList": "SELECT 1 as id, 'sri' as name UNION ALL SELECT 2 as id, 'anshu' as name"
+        }]
+        resource = Resource(id="in-memory-resource", queries=queries)
         squealy = Squealy()
-        objects = [
-            {
-                "id": "in-memory-resource",
-                "type": "resource",
-                "queries": [{
-                    "isRoot": True,
-                    "queryForList": "SELECT 1 as id, 'sri' as name UNION ALL SELECT 2 as id, 'anshu' as name"
-                }]
-            }
-        ]
-        squealy.load_resources(objects=objects)
         squealy.add_engine('default', InMemorySqliteEngine())
-        self.assertEqual(len(squealy.get_resources()), 1)
-        resource = squealy.get_resource("in-memory-resource")
         data = resource.process(squealy, {"params": {}})
         self.assertEqual(data, {'data': [{'id': 1, 'name': 'sri'}, {'id': 2, 'name': 'anshu'}]})
 
@@ -181,7 +172,7 @@ class FormatterTests(unittest.TestCase):
                 ORDER BY month
                 """
         
-        resource = Resource("monthly-sales", queries=[{"isRoot": True, "queryForList": query}])
+        resource = Resource("monthly-sales", queries=[{"queryForList": query}])
         resources = {resource.id: resource}
         self.squealy = Squealy(snippets=snippets, resources=resources)
         self.squealy.add_engine('default', InMemorySqliteEngine())
@@ -225,5 +216,5 @@ class FormatterTests(unittest.TestCase):
 
     def _clone_resource(self, resource_name, formatter):
         resource = self.squealy.get_resource(resource_name)
-        cloned = Resource(uuid4(), queries=resource.queries, datasource=resource.default_datasource, formatter=formatter)
+        cloned = Resource(uuid4(), queries=resource.queries, datasource=resource.datasource, formatter=formatter)
         return cloned

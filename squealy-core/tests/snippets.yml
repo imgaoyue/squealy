@@ -1,0 +1,7 @@
+question_object: |
+  SELECT q.id, q.title from (
+    SELECT 1 as id, 'How to install squealy?' as title UNION ALL
+    SELECT 2 as id, 'Can Squealy be used in Java?' as title UNION ALL
+    SELECT 3 as id, 'Does Squealy support Oracle?' as title
+  ) q
+   

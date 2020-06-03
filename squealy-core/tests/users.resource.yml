@@ -1,0 +1,5 @@
+queries:
+  - queryForList: |
+      SELECT 1 as id, 'sri' as name
+        UNION ALL
+      SELECT 2 as id, 'anshu' as name

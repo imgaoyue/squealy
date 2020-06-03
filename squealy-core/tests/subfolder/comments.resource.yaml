@@ -1,0 +1,6 @@
+queries:
+  - queryForList: |
+      SELECT 1 as id, 'This is the first comment' as comment
+        UNION ALL
+      SELECT 2 as id, 'Nothing spectacular, but this is the second comment' as comment
+  

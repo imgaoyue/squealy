@@ -7,7 +7,7 @@ class FlaskSquealy(Squealy):
     def __init__(self, app, home_dir=None, snippets=None, resources=None):
         super(FlaskSquealy, self).__init__(snippets=snippets, resources=resources)
         if home_dir:
-            self.load_resources(home_dir)
+            self.load_objects(home_dir)
         self._load_engines(app)
 
         # Store squealy under app['extensions'] so we can later retrieve it

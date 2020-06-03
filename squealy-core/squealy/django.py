@@ -1,18 +1,26 @@
 import os
+from django.apps import apps
 from django.conf import settings
 from django.db import connections
 from django.views import View
 from django.http import JsonResponse
 
-from squealy import Squealy, Engine, Table, SquealyConfigException
+from squealy import Squealy, Resource, Engine, Table, SquealyConfigException
 
 class DjangoSquealy(Squealy):
-    def __init__(self, snippets=None, resources=None, home_dir=None):
+    def __init__(self, snippets=None, resources=None):
         super(DjangoSquealy, self).__init__(snippets=snippets, resources=resources)
-        if home_dir:
-            self.load_resources(home_dir)
         for conn_name in connections:
             self.add_engine(conn_name, DjangoORMEngine(connections[conn_name]))
+        
+        resource_dirs = []
+        for app_config in apps.get_app_configs():
+            name = app_config.name
+            if name.startswith('django.contrib.') or name in ('rest_framework', ):
+                continue
+            resource_dirs.append(app_config.path)
+        if resource_dirs:
+            self.load_objects(resource_dirs)
 
 class DjangoORMEngine(Engine):
     def __init__(self, conn):
@@ -36,11 +44,7 @@ class DjangoORMEngine(Engine):
             return row[0]
 
 def load_default_squealy():
-    if hasattr(settings, 'SQUEALY_HOME_DIR'):
-        home_dir = settings.SQUEALY_HOME_DIR
-    else:
-        home_dir = None
-    squealy = DjangoSquealy(home_dir=home_dir)
+    squealy = DjangoSquealy()
     return squealy
 
 _DEFAULT_SQUEALY = load_default_squealy()
@@ -48,7 +52,7 @@ _DEFAULT_SQUEALY = load_default_squealy()
 class SqlView(View):
     # squealy and resource_id will be set when SqlView.as_view() is called
     squealy = _DEFAULT_SQUEALY
-    resource_id = None
+    resource = None
 
     def build_context(self, request, *args, **kwargs):
         params = {}
@@ -61,10 +65,13 @@ class SqlView(View):
         }
 
     def get(self, request, *args, **kwargs):
-        if not self.resource_id:
-            raise SquealyConfigException('resource_id is not set, did you forget to pass it in SqlView.as_view(resource_id=) ?')
+        if not self.resource:
+            raise SquealyConfigException('resource is not set, did you forget to pass it in SqlView.as_view(resource=) ?')
         context = self.build_context(request, *args, **kwargs)
-        resource = self.squealy.get_resource(self.resource_id)
+        if isinstance(self.resource, Resource):
+            resource = self.resource
+        else:
+            resource = self.squealy.get_resource(self.resource)
         data = resource.process(self.squealy, context)
         return JsonResponse(data)
 

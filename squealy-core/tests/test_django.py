@@ -1,13 +1,9 @@
 import os
 
-# We want to test Django, but it is too painful to install the complete Django project
-# To simplify, this file is a valid settings.py and urls.py file 
-# With this module, we are able to load Django connections and perform our testing
+# Default Django Settings
 
-
-SQUEALY_HOME_DIR = os.path.abspath(os.path.dirname(__file__))
-SECRET_KEY='secret'
-DEBUG=True
+SECRET_KEY = "secret"
+DEBUG = True
 ALLOWED_HOSTS = ['testserver']
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -16,8 +12,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'tests.test_django'
 ]
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -27,7 +23,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'tests.test_django'
 DATABASES = {
     'default': {
@@ -35,7 +30,6 @@ DATABASES = {
         'NAME': ':memory:',
     }
 }
-
 # End of Django Settings
 
 # This section is typically found in wsgi.py or manage.py
@@ -50,29 +44,41 @@ django.setup()
 from squealy.django import DjangoSquealy
 from squealy import Resource
 
-resource = Resource("userprofile", queries=[{"isRoot": True, "queryForObject": "SELECT 1 as id, 'A' as name"}])
+resource = Resource("userprofile", queries=[{"queryForObject": "SELECT 1 as id, 'A' as name"}])
 squealy = DjangoSquealy(resources={resource.id: resource})
 
 # end of squealy.py
 
-# Contents of urls.py
+#Contents of urls.py
 from django.urls import path
 from squealy.django import SqlView
 urlpatterns = [
     # Use an application provided squealy object
-    path('squealy/userprofile/', SqlView.as_view(resource_id='userprofile', squealy=squealy)),
+    path('squealy/userprofile/', SqlView.as_view(resource='userprofile', squealy=squealy)),
 
-    # Use the default squealy object that loads resources from home dir
-    path('squealy/questions/', SqlView.as_view(resource_id='questions')),
+    # Use a resource object instead of a string identifier
+    path('squealy/alt-userprofile/', SqlView.as_view(resource=resource, squealy=squealy)),
+
+    # Use the default squealy object that loads resources *.resource.yml files under each django app
+    path('squealy/questions/', SqlView.as_view(resource='questions')),
+
+    # The same resource should be accessible using the file name
+    path('squealy/alt-questions/', SqlView.as_view(resource='questions.resource.yml')),
+
+    # Use the file name instead of the id
+    path('squealy/users/', SqlView.as_view(resource='users.resource.yml')),
+
+    # In a subfolder, with the *.yaml extension
+    path('squealy/comments/', SqlView.as_view(resource='subfolder/comments.resource.yaml')),
 ]
-
 
 # Our Test Cases start from here
 
+
 import unittest
-from squealy.django import DjangoSquealy, DjangoORMEngine, SqlView
 from django.test import Client
 from django.db import connections
+from squealy.django import DjangoORMEngine
 
 class DjangoTests(unittest.TestCase):
     def test_django_with_sqlite(self):
@@ -87,13 +93,11 @@ class DjangoTests(unittest.TestCase):
         c = Client()
         response = c.get("/squealy/userprofile/")
         self.assertEqual(response.json(), {'data': {'id': 1, 'name': 'A'}})
+        response = c.get("/squealy/alt-userprofile/")
+        self.assertEqual(response.json(), {'data': {'id': 1, 'name': 'A'}})
 
     def test_sqlview_with_default_squealy(self):
-        c = Client()
-        response = c.get("/squealy/questions/")
-
-        self.assertEqual(response.json()['data'], 
-            [{'id': 1, 'title': 'How to install squealy?', 
+        expected_data = [{'id': 1, 'title': 'How to install squealy?', 
                 'comments': [
                     {'qid': 1, 'comment': 'What OS?'}, 
                     {'qid': 1, 'comment': 'Ubuntu 18.04'}, 
@@ -105,4 +109,27 @@ class DjangoTests(unittest.TestCase):
                     {'qid': 2, 'comment': 'You can run in docker and call over http from java'}
                 ]
             }
+        ]
+
+        c = Client()
+        response = c.get("/squealy/questions/")
+        self.assertEqual(response.json()['data'], expected_data)
+
+        response = c.get("/squealy/alt-questions/")
+        self.assertEqual(response.json()['data'], expected_data)
+
+    def test_sqlview_resource_without_explicit_id(self):
+        c = Client()
+        response = c.get("/squealy/users/")
+
+        self.assertEqual(response.json()['data'], 
+            [{'id': 1, 'name': 'sri'}, {'id': 2, 'name': 'anshu'}])
+
+    def test_sqlview_resource_in_subfolder(self):
+        c = Client()
+        response = c.get("/squealy/comments/")
+
+        self.assertEqual(response.json()['data'], [
+            {'id': 1, 'comment': 'This is the first comment'}, 
+            {'id': 2, 'comment': 'Nothing spectacular, but this is the second comment'}
         ])

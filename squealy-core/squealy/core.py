@@ -6,6 +6,7 @@ import yaml
 from pathlib import Path
 from .formatters import JsonFormatter
 from itertools import chain
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -65,68 +66,81 @@ class Squealy:
     def get_jinja(self):
         return self.jinja
 
+    def add_resource(self, resource):
+        self.resources[resource.id] = resource
+
     def get_resources(self):
         return dict(self.resources)
 
-    def get_resource(self, _id):
-        return self.resources[_id]
+    def get_resource(self, id):
+        return self.resources[id]
 
-    def load_resources(self, base_dir=None, objects=None):
-        '''Loads resources, either from yaml files in a directory or from python objects
-          
-           objects, if provided, must be a list of dictionary objects
+    def load_objects(self, dirs=None):
+        '''Loads resources and snippets from the provided directories
         '''
+        if not dirs:
+            raise SquealyConfigException("Directories cannot be empty / None")
+        if isinstance(dirs, str):
+            dirs = [dirs]
         resources = {}
         snippets = {}
-        empty_iter = iter([])
-
-        objects_from_dir = self._object_iter(base_dir) if base_dir else empty_iter
-        objects_from_memory = iter(objects) if objects else empty_iter
-        combined = chain(objects_from_dir, objects_from_memory)
-
-        for rawobj in combined:
+        
+        for ymlfile, rawobj in self._object_iter(dirs):
             if not rawobj:
                 continue
-            _type = rawobj.get('type', None)
-            if not _type:
-                continue
-            if _type == 'resource':
-                resource = self._load_resource(rawobj)
+            type = self._find_file_type(ymlfile)
+            id = rawobj.get('id', None)
+            if not id:
+                rawobj['id'] = str(ymlfile)
+            if type == 'resource':
+                resource = Resource(**rawobj)
+                # Store the resource using file name as well as unique id if provided
                 resources[resource.id] = resource
-            elif _type == 'snippet':
-                _id = rawobj.get("id", None)
-                template = rawobj.get("template", None)
-                if not _id:
-                    raise SquealyConfigException("Snippet is missing id")
-                if not template:
-                    raise SquealyConfigException("Snippet " + _id + " is missing template")
-                snippets[_id] = template
+                resources[str(ymlfile)] = resource
+            elif type == 'snippets':
+                snippets.update(rawobj)
             else:
-                raise SquealyConfigException("Unknown object of type = " + _type + " in file " + ymlfile)
+                raise SquealyConfigException("Unknown object of type = " + type + " in file " + ymlfile)
         
         self.resources.update(resources)
         self.snippets.update(snippets)
         self._reload_jinja()
 
-    def _object_iter(self, base_dir):
-        for ymlfile in Path(base_dir).rglob("*.yml"):    
-            with open(ymlfile) as f:
-                objects = yaml.safe_load_all(f)
-                for rawobj in objects:
-                    yield rawobj
+    def _object_iter(self, dirs):
+        extensions = ["*.resource.yml", "*.resource.yaml", "snippets.yml", "snippets.yaml"]
+        for directory in dirs:
+            for extension in extensions:
+                files = Path(directory).rglob(extension)
+                for ymlfile in files:
+                    with open(ymlfile) as f:
+                        rawobj = yaml.safe_load(f)
+                        yield (ymlfile.relative_to(directory), rawobj)
 
-    def _load_resource(self, raw_resource):
-        _id = raw_resource.get('id', None)
-        queries = raw_resource.get('queries', None)
-        datasource = raw_resource.get('datasource', None)
-        formatter = self._load_formatter(raw_resource.get('formatter', 'JsonFormatter'))
-        path = raw_resource.get('path', None)
 
-        if not _id:
-            raise SquealyConfigException("Resource is missing id " + raw_resource)
+    def _find_file_type(self, ymlfile):
+        if ymlfile.match("*.resource.yml") or ymlfile.match("*.resource.yaml"):
+            return "resource"
+        elif ymlfile.match("snippets.yml") or ymlfile.match("snippets.yaml"):
+            return "snippets"
+        else:
+            return "unknown"
+
+class Resource:
+    def __init__(self, id, queries, datasource=None, formatter=None, path=None, **kwargs):
+        if not id:
+            raise SquealyConfigException("Missing id field")
         if not queries:
-            raise SquealyConfigException("Queries is empty or missing")
-        return Resource(_id=_id, queries=queries, datasource=datasource, formatter=formatter, path=path)
+            raise SquealyConfigException("Queries cannot be empty")
+
+        self.id = id
+        self.queries = Queries(queries)
+        self.datasource = datasource
+        if formatter and isinstance(formatter, str):
+            self.formatter = self._load_formatter(formatter)
+        else:
+            self.formatter = formatter if formatter else JsonFormatter()
+        if len(queries) > 1 and not self.formatter.supports_multi_queries():
+            raise SquealyConfigException(type(self.formatter) + " does not support more than 1 query")
 
     def _load_formatter(self, raw_formatter):
         if not '.' in raw_formatter:
@@ -142,30 +156,14 @@ class Squealy:
         for comp in parts[1:]:
             m = getattr(m, comp)            
         return m
-
-class Resource:
-    def __init__(self, _id, queries, datasource=None, formatter=None, path=None, **kwargs):
-        if not _id:
-            raise SquealyConfigException("Missing id field")
-        if not queries:
-            raise SquealyConfigException("Queries cannot be empty")
-
-        self.id = _id
-        self.queries = Queries(queries)
-        self.default_datasource = datasource
-        self.formatter = formatter if formatter else JsonFormatter()
-        self.path = path
-
-        if len(queries) > 1 and not self.formatter.supports_multi_queries():
-            raise SquealyConfigException(type(self.formatter) + " does not support more than 1 query")
-        
+            
     def process(self, squealy, initial_context):
         logger.debug("Processing request for resource %s with initial_context %s", self.id, initial_context)
         jinja = squealy.get_jinja()
         context = initial_context
         results = None
         for query in self.queries:
-            engine = squealy.get_engine(query.datasource or self.default_datasource)
+            engine = squealy.get_engine(query.datasource or self.datasource)
             logger.debug("Using engine %s to process query template %s", engine, query.query)
             finalquery, bindparams = jinja.prepare_query(query.query, context, engine.param_style)
             logger.info("Final Query is %s", finalquery)
