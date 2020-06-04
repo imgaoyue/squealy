@@ -8,26 +8,12 @@ from .formatters import JsonFormatter
 from itertools import chain
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-# Try to extend the underyling framework's (django or flask) exception
-try:
-    from rest_framework.exceptions import APIException as FrameworkHTTPException
-except ImportError:
-    try:
-        from werkzeug.exceptions import HTTPException as FrameworkHTTPException
-    except ImportError:
-        FrameworkHTTPException = Exception
-
-class SquealyException(FrameworkHTTPException):
+class SquealyException(Exception):
     code = status_code = 500
     description = default_detail = "Internal Server Error"
     default_code = "internal-error"
-
-class BadRequest(FrameworkHTTPException):
-    code = status_code = 400
-    description = default_detail = "Bad Request"
-    default_code = "bad-request"
 
 class SquealyConfigException(SquealyException):
     '''Indicates a configuration problem. 
@@ -166,8 +152,8 @@ class Resource:
             engine = squealy.get_engine(query.datasource or self.datasource)
             logger.debug("Using engine %s to process query template %s", engine, query.query)
             finalquery, bindparams = jinja.prepare_query(query.query, context, engine.param_style)
-            logger.info("Final Query is %s", finalquery)
-            logger.info("Bind Parameters are %s", bindparams)
+            logger.debug("Final Query is %s", finalquery)
+            logger.debug("Bind Parameters are %s", bindparams)
             table = engine.execute(finalquery, bindparams)
             if query.is_object:
                 if len(table) == 0 and not query.is_optional:
@@ -293,10 +279,6 @@ class Query:
 class Engine:
     'A SQL / NoSQL compliant interface to execute a query. Returns a Table'
     def execute(self, query, bind_params):
-        pass
-
-    'Similar to execute, but returns a JSON string instead. Useful when the database itself generates JSON'
-    def execute_for_json(self, query, bind_params):
         pass
 
 class Table:

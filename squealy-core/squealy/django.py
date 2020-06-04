@@ -4,8 +4,10 @@ from django.conf import settings
 from django.db import connections
 from django.views import View
 from django.http import JsonResponse
-
+import logging
 from squealy import Squealy, Resource, Engine, Table, SquealyConfigException
+
+logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 class DjangoSquealy(Squealy):
     def __init__(self, snippets=None, resources=None):
@@ -20,7 +22,10 @@ class DjangoSquealy(Squealy):
                 continue
             resource_dirs.append(app_config.path)
         if resource_dirs:
+            logger.info("Loading resource files from these directories - %s", resource_dirs)
             self.load_objects(resource_dirs)
+        else:
+            logger.warn("Did not find any directories to load resources!")
 
 class DjangoORMEngine(Engine):
     def __init__(self, conn):
@@ -35,13 +40,6 @@ class DjangoORMEngine(Engine):
             rows = cursor.fetchall()
         table = Table(columns=cols, data=rows)
         return table
-
-    def execute_for_json(self, query, bind_params):
-        'Assume the query returns exacyly 1 row with exactly 1 column, and that cell is a JSON encoded string'
-        with conn.cursor() as cursor:
-            cursor.execute(query, bind_params)
-            row = cursor.fetchone()
-            return row[0]
 
 def load_default_squealy():
     squealy = DjangoSquealy()

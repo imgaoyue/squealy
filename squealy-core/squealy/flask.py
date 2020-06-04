@@ -38,11 +38,6 @@ class SqlAlchemyEngine(Engine):
         table = Table(columns=result.keys(), data=[r.values() for r in rows])
         return table
 
-    def execute_for_json(self, query, bind_params):
-        with self.engine.connect() as conn:
-            result = conn.execute(finalquery, bindparams)
-            return result.fetchone()[0]
-
     def _set_param_style(self):
         dialect_str = str(type(self.engine.dialect).__module__).lower()
         if 'sqlite' in dialect_str:
