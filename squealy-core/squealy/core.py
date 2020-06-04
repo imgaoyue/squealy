@@ -8,7 +8,8 @@ from .formatters import JsonFormatter
 from itertools import chain
 import logging
 
-logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 class SquealyException(Exception):
     code = status_code = 500

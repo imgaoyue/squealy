@@ -7,7 +7,8 @@ from django.http import JsonResponse
 import logging
 from squealy import Squealy, Resource, Engine, Table, SquealyConfigException
 
-logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 class DjangoSquealy(Squealy):
     def __init__(self, snippets=None, resources=None):

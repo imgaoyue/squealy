@@ -1,6 +1,7 @@
 import logging
 
-logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 class Formatter:
     def supports_multi_queries(self):
