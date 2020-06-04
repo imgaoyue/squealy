@@ -1,28 +1,56 @@
 import json
+import flask
 from flask import request, current_app, render_template
 from werkzeug.exceptions import HTTPException, Unauthorized, NotFound
 from functools import wraps
 import jwt
 from squealy.flask import SqlView
 import yaml
+from squealy import Squealy
 from squealyapp import app, SquealyConfigException
 
 @app.route("/", methods=["GET"])
 def repl_ui():
     return render_template("repl.html")
 
+@app.after_request
+def handle_cors(response):
+    if not response:
+        response = flask.Response()
+    cors_allowed_headers = [
+        'accept',
+        'accept-encoding',
+        'authorization',
+        'content-type',
+        'dnt',
+        'origin',
+        'user-agent',
+        'x-csrftoken',
+        'x-requested-with']
+    response.headers['Access-Control-Allow-Origin'] = "http://localhost:8080"
+    response.headers['Access-Control-Allow-Methods'] = ",".join(["GET","POST","OPTIONS"])
+    response.headers['Access-Control-Allow-Headers'] = ",".join(cors_allowed_headers)
+    return response
+
+
 @app.route("/_repl", methods=["POST"])
 def repl():
     squealy = current_app.extensions['squealy']
-    resource_as_str = request.json['resource']
+    resource_as_str = request.json['query']
     raw_objects = yaml.safe_load_all(resource_as_str)
+    raw_objects = list(raw_objects)
     resource_id = _find_resource_id(raw_objects)
-    squealy.load_resources(objects=raw_objects)
-    context = request.json['context']
-    context = json.loads(context)
+    try:
+        squealy.load_resources(objects=raw_objects)
+    except Exception as e:
+        print(e)
+    context = request.json['variables']
+    print("context", context)
+    #context = json.loads(context)
     resource = squealy.get_resource(resource_id)
     output = resource.process(squealy, context)
     response = {"output": output, "logs": []}
+
     return response
 
 def _find_resource_id(raw_objects):
@@ -35,16 +63,6 @@ def _find_resource_id(raw_objects):
     if "id" not in resource:
         raise SquealyConfigException('Resource does not have an id')
     return resource["id"]
-    
-
-# #@app.after_request
-# def enable_cors(response):
-#     if config.is_cors_enabled:
-#         response.headers['Access-Control-Allow-Origin'] = config.cors_allowed_origins
-#         response.headers['Access-Control-Allow-Methods'] = config.cors_allowed_methods
-#         response.headers['Access-Control-Allow-Headers'] = config.cors_allowed_headers
-
-#     return response
 
 def login_required(f):
     @wraps(f)
