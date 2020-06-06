@@ -1,4 +1,4 @@
-Django==2.1
+Django==2.2.13
 Flask==1.0.2
 jinjasql==0.1.8
 coverage==5.1
