@@ -3,6 +3,7 @@ from jinja2 import Environment
 from jinjasql import JinjaSql
 import os
 import yaml
+from yaml.error import MarkedYAMLError
 from pathlib import Path
 from .formatters import JsonFormatter
 from itertools import chain
@@ -11,7 +12,16 @@ import logging
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-class SquealyException(Exception):
+# Try to extend the underyling framework's (django or flask) exception	# Try to extend the underyling framework's (django or flask) exception
+try:
+    from rest_framework.exceptions import APIException as FrameworkHTTPException
+except ImportError:
+    try:
+        from werkzeug.exceptions import HTTPException as FrameworkHTTPException
+    except ImportError:
+        FrameworkHTTPException = Exception
+
+class SquealyException(FrameworkHTTPException):
     code = status_code = 500
     description = default_detail = "Internal Server Error"
     default_code = "internal-error"
@@ -24,6 +34,9 @@ class SquealyConfigException(SquealyException):
     code = status_code = 500
     description = default_detail = "Bad configuration, check error logs"
     default_code = "bad-configuration"
+
+class SquealyYamlException(SquealyConfigException):
+    pass
 
 class Squealy:
     '''
@@ -60,7 +73,10 @@ class Squealy:
         return dict(self.resources)
 
     def get_resource(self, id):
-        return self.resources[id]
+        try:
+            return self.resources[id]
+        except KeyError as e:
+            raise SquealyException("Resource" + id + " does not exist") from e
 
     def load_objects(self, dirs=None):
         '''Loads resources and snippets from the provided directories
@@ -99,15 +115,13 @@ class Squealy:
             for extension in extensions:
                 files = Path(directory).rglob(extension)
                 for ymlfile in files:
-                    with open(ymlfile) as f:
-                        rawobj = yaml.safe_load(f)
-                        yield (ymlfile.relative_to(directory), rawobj)
-
-
+                    yield (ymlfile.relative_to(directory), _load_yaml(ymlfile))
+    
     def _find_file_type(self, ymlfile):
         if ymlfile.match("*.resource.yml") or ymlfile.match("*.resource.yaml"):
             return "resource"
-        elif ymlfile.match("snippets.yml") or ymlfile.match("snippets.yaml"):
+        elif ymlfile.match("snippets.yml") or ymlfile.match("snippets.yaml") \
+            or ymlfile.match("snippet.yml") or ymlfile.match("snippet.yaml"):
             return "snippets"
         else:
             return "unknown"
@@ -384,3 +398,10 @@ class JinjaWrapper:
         loader = DictLoader(snippets)
         env = Environment(loader=loader)
         return JinjaSql(env, param_style=param_style)
+
+def _load_yaml(ymlfile):
+    with open(ymlfile) as f:
+        try:
+            return yaml.safe_load(f)
+        except MarkedYAMLError as e:
+            raise SquealyYamlException(str(e)) from e

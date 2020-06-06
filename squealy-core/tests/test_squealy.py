@@ -1,7 +1,10 @@
+import os
 import unittest
 from uuid import uuid4
-from squealy import Squealy, Resource, Engine, Table
+from squealy import Squealy, Resource, Engine, Table, SquealyYamlException
 from squealy.formatters import JsonFormatter, SimpleFormatter, SeriesFormatter, GoogleChartsFormatter
+
+from squealy.core import _load_yaml
 
 class InMemorySqliteEngine(Engine):
     def __init__(self):
@@ -28,6 +31,10 @@ class LoaderTests(unittest.TestCase):
         data = resource.process(squealy, {"params": {}})
         self.assertEqual(data, {'data': [{'id': 1, 'name': 'sri'}, {'id': 2, 'name': 'anshu'}]})
 
+    def test_load_malformed_yaml(self):
+        ymlfile = os.path.join(os.path.dirname(__file__), "malformed.yaml")
+        with self.assertRaises(SquealyYamlException):
+            _load_yaml(ymlfile)
 
 class ResourceTests(unittest.TestCase):
     def setUp(self):
