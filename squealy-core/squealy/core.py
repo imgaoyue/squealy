@@ -194,10 +194,11 @@ class Queries:
             raise SquealyConfigException("queries must be a list")
         
         if isinstance(queries, list):
-            # Single queries are alway root queries
-            if len(queries) == 1:
-                if not isinstance(queries[0], dict):
-                    raise SquealyConfigException('query must be a dict')
+            if not isinstance(queries[0], dict):
+                raise SquealyConfigException('query must be a dict')
+            
+            # The first query is the root query if it does not specify a key
+            if not 'key' in queries[0]:
                 queries[0]['isRoot'] = True
             
             parsed_queries = []
