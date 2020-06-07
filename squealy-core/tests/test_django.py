@@ -51,25 +51,28 @@ squealy = DjangoSquealy(resources={resource.id: resource})
 
 #Contents of urls.py
 from django.urls import path
-from squealy.django import SqlView
+from squealy.django import SqlView, AnonymousSqlView
 urlpatterns = [
     # Use an application provided squealy object
-    path('squealy/userprofile/', SqlView.as_view(resource='userprofile', squealy=squealy)),
+    path('squealy/userprofile/', AnonymousSqlView.as_view(resource='userprofile', squealy=squealy)),
 
     # Use a resource object instead of a string identifier
-    path('squealy/alt-userprofile/', SqlView.as_view(resource=resource, squealy=squealy)),
+    path('squealy/alt-userprofile/', AnonymousSqlView.as_view(resource=resource, squealy=squealy)),
 
     # Use the default squealy object that loads resources *.resource.yml files under each django app
-    path('squealy/questions/', SqlView.as_view(resource='questions')),
+    path('squealy/questions/', AnonymousSqlView.as_view(resource='questions')),
 
     # The same resource should be accessible using the file name
-    path('squealy/alt-questions/', SqlView.as_view(resource='questions.resource.yml')),
+    path('squealy/alt-questions/', AnonymousSqlView.as_view(resource='questions.resource.yml')),
 
     # Use the file name instead of the id
-    path('squealy/users/', SqlView.as_view(resource='users.resource.yml')),
+    path('squealy/users/', AnonymousSqlView.as_view(resource='users.resource.yml')),
 
     # In a subfolder, with the *.yaml extension
-    path('squealy/comments/', SqlView.as_view(resource='subfolder/comments.resource.yaml')),
+    path('squealy/comments/', AnonymousSqlView.as_view(resource='subfolder/comments.resource.yaml')),
+
+    # Must be authenticated
+    path('squealy/auth-userprofile/', SqlView.as_view(resource='userprofile', squealy=squealy)),
 ]
 
 # Our Test Cases start from here
@@ -133,3 +136,11 @@ class DjangoTests(unittest.TestCase):
             {'id': 1, 'comment': 'This is the first comment'}, 
             {'id': 2, 'comment': 'Nothing spectacular, but this is the second comment'}
         ])
+
+    def test_sqlview_with_authentication(self):
+        c = Client()
+        response = c.get("/squealy/auth-userprofile/")
+        # Expect a redirect to login page
+        self.assertEqual(response.url, '/accounts/login/?next=/squealy/auth-userprofile/')
+
+        

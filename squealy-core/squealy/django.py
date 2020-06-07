@@ -4,6 +4,9 @@ from django.conf import settings
 from django.db import connections
 from django.views import View
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
 import logging
 from squealy import Squealy, Resource, Engine, Table, SquealyConfigException
 
@@ -48,7 +51,7 @@ def load_default_squealy():
 
 _DEFAULT_SQUEALY = load_default_squealy()
 
-class SqlView(View):
+class AnonymousSqlView(View):
     # squealy and resource_id will be set when SqlView.as_view() is called
     squealy = _DEFAULT_SQUEALY
     resource = None
@@ -74,3 +77,6 @@ class SqlView(View):
         data = resource.process(self.squealy, context)
         return JsonResponse(data)
 
+@method_decorator(login_required, name='dispatch')
+class SqlView(AnonymousSqlView):
+    pass
