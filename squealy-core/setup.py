@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="squealy",
-    version="0.2.2",
+    version="0.2.3",
     author="Sripathi Krishnan",
     author_email="sripathi.krishnan@hashedin.com",
     description="A small example package",
