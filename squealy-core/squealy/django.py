@@ -14,7 +14,7 @@ class DjangoSquealy(Squealy):
     def __init__(self, snippets=None, resources=None):
         super(DjangoSquealy, self).__init__(snippets=snippets, resources=resources)
         for conn_name in connections:
-            self.add_engine(conn_name, DjangoORMEngine(connections[conn_name]))
+            self.add_engine(conn_name, DjangoORMEngine(conn_name))
         
         resource_dirs = []
         for app_config in apps.get_app_configs():
@@ -29,13 +29,13 @@ class DjangoSquealy(Squealy):
             logger.warn("Did not find any directories to load resources!")
 
 class DjangoORMEngine(Engine):
-    def __init__(self, conn):
-        self.conn = conn
+    def __init__(self, conn_name):
+        self.conn_name = conn_name
         # Django uses %s for bind parameters, across all databases
         self.param_style = 'format'
 
     def execute(self, query, bind_params):
-        with self.conn.cursor() as cursor:
+        with connections[self.conn_name].cursor() as cursor:
             cursor.execute(query, bind_params)
             cols = [col[0] for col in cursor.description]
             rows = cursor.fetchall()

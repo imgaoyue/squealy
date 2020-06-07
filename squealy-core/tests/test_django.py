@@ -83,7 +83,7 @@ from squealy.django import DjangoORMEngine
 class DjangoTests(unittest.TestCase):
     def test_django_with_sqlite(self):
         conn = connections['default']        
-        engine = DjangoORMEngine(connections['default'])
+        engine = DjangoORMEngine('default')
         table = engine.execute("SELECT 'a' as A, 1 as B where 1 = %s", [1])
         
         self.assertEqual(['A', 'B'], table.columns)
